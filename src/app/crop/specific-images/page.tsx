@@ -1,190 +1,77 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import ReactCrop, { type Crop as ReactCropType } from 'react-image-crop';
-import 'react-image-crop/dist/ReactCrop.css';
-import { Button } from "@/components/ui/button";
+import { AssetsBrowser } from '@/components/resize/AssetsBrowser';
+import { CropControls } from '@/components/crop/CropControls';
 import { useToast } from "@/components/hooks/use-toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Save, Replace, Copy, Home, Crop } from 'lucide-react';
+import { Home, Layout, ArrowLeft, Crop } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { WebflowAsset } from '@/app/types/webflow'; // Import shared type
 
-export default function CropEditor() {
+// Helper function to extract filename from URL
+const getFilenameFromUrl = (url: string | undefined): string => {
+  if (!url) return 'Unknown Image';
+  
+  // Extract the filename from the URL
+  const urlParts = url.split('/');
+  let filename = urlParts[urlParts.length - 1];
+  
+  // Remove any query parameters
+  filename = filename.split('?')[0];
+  
+  // URL decode the filename
+  try {
+    filename = decodeURIComponent(filename);
+  } catch (e) {
+    // If decoding fails, use the encoded version
+  }
+  
+  return filename;
+};
+
+export default function CropSpecificImagesPage() {
   const router = useRouter();
+  const [selectedAsset, setSelectedAsset] = useState<WebflowAsset | null>(null);
+  const [isCropping, setIsCropping] = useState(false);
   const { toast } = useToast();
-  const imgRef = useRef<HTMLImageElement>(null);
-  const previewCanvasRef = useRef<HTMLCanvasElement>(null);
-  
-  const [crop, setCrop] = useState<ReactCropType>({
-    unit: '%',
-    width: 50,
-    height: 50,
-    x: 25,
-    y: 25
-  });
-  
-  const [showSaveOptions, setShowSaveOptions] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
-  const [croppedImageUrl, setCroppedImageUrl] = useState<string | null>(null);
+  const [assetDisplayName, setAssetDisplayName] = useState<string>('');
 
-  const getCropPixels = () => {
-    if (!imgRef.current) return null;
-    
-    const { naturalWidth, naturalHeight } = imgRef.current;
-    return {
-      x: Math.round((crop.x * naturalWidth) / 100),
-      y: Math.round((crop.y * naturalHeight) / 100),
-      width: Math.round((crop.width * naturalWidth) / 100),
-      height: Math.round((crop.height * naturalHeight) / 100)
-    };
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLImageElement>) => {
-    const moveAmount = e.shiftKey ? 5 : 1;
-    const newCrop = { ...crop };
-
-    switch (e.key) {
-      case 'ArrowLeft':
-        newCrop.x = Math.max(0, crop.x - moveAmount);
-        break;
-      case 'ArrowRight':
-        newCrop.x = Math.min(100 - crop.width, crop.x + moveAmount);
-        break;
-      case 'ArrowUp':
-        newCrop.y = Math.max(0, crop.y - moveAmount);
-        break;
-      case 'ArrowDown':
-        newCrop.y = Math.min(100 - crop.height, crop.y + moveAmount);
-        break;
-      default:
-        return;
-    }
-
-    setCrop(newCrop);
-    e.preventDefault();
-  };
-
-  const cropImage = async () => {
-    if (!imgRef.current || !crop.width || !crop.height) {
-      console.error("Invalid image reference or crop dimensions");
-      return null;
-    }
-  
-    const image = imgRef.current;
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-  
-    if (!ctx) {
-      console.error("Failed to get canvas context");
-      return null;
-    }
-  
-    // Ensure image is loaded before proceeding
-    if (image.complete && image.naturalWidth !== 0) {
-      console.log("Image is fully loaded");
+  useEffect(() => {
+    if (selectedAsset) {
+      // Use name if available, otherwise extract from URL
+      const displayName = selectedAsset.name || getFilenameFromUrl(selectedAsset.url);
+      setAssetDisplayName(displayName);
     } else {
-      console.error("Image not loaded properly");
-      return null;
+      setAssetDisplayName('');
     }
-  
-    // Scale calculations
-    const scaleX = image.naturalWidth / image.width;
-    const scaleY = image.naturalHeight / image.height;
-    const cropX = crop.x * scaleX;
-    const cropY = crop.y * scaleY;
-    const cropWidth = crop.width * scaleX;
-    const cropHeight = crop.height * scaleY;
-  
-    // Ensure valid crop dimensions
-    if (cropWidth <= 0 || cropHeight <= 0) {
-      console.error("Invalid crop dimensions");
-      return null;
-    }
-  
-    // Set canvas size
-    canvas.width = cropWidth;
-    canvas.height = cropHeight;
-  
-    // Draw the cropped image on canvas
-    ctx.drawImage(
-      image,
-      cropX,
-      cropY,
-      cropWidth,
-      cropHeight,
-      0,
-      0,
-      cropWidth,
-      cropHeight
-    );
-  
-    // Convert to Blob and return
-    return new Promise<Blob | null>((resolve) => {
-      canvas.toBlob((blob) => {
-        if (!blob) {
-          console.error("Failed to create Blob from canvas");
-        }
-        resolve(blob);
-      }, 'image/jpeg');
+  }, [selectedAsset]);
+
+  const handleCrop = (dimensions: { width: number; height: number }) => {
+    toast({
+      title: "Success",
+      description: `Image cropped to ${dimensions.width}x${dimensions.height} and uploaded to Webflow assets.`,
     });
-  };  
+  };
 
-  const handleSaveOption = async (saveType: 'replace' | 'copy') => {
-    const croppedBlob = await cropImage();
-    if (croppedBlob) {
-      const croppedImageUrl = URL.createObjectURL(croppedBlob);
-      setCroppedImageUrl(croppedImageUrl);
-      setShowSaveOptions(false);
-      setShowPreview(true);
-      toast({
-        title: "Success",
-        description: `Image ${saveType === 'replace' ? 'replaced' : 'saved as copy'} successfully.`,
-      });
-    } else {
-      toast({
-        title: "Error",
-        description: "Failed to crop the image. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };  
+  // In your page.tsx
+  const handleAssetSelect = (asset: WebflowAsset) => {
+    console.log('Selected Asset:', {
+      url: asset.url,
+      name: asset.name,
+      width: asset.width,
+      height: asset.height
+    });
+    setSelectedAsset(asset);
+  };
 
-  const handleDownload = async () => {
-    const croppedBlob = await cropImage();
-    if (!croppedBlob) {
-      toast({
-        title: "Error",
-        description: "Could not generate cropped image.",
-        variant: "destructive",
-      });
-      return;
-    }
-  
-    const url = URL.createObjectURL(croppedBlob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "cropped-image.jpg";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };  
+  const handleBackToAssets = () => {
+    setIsCropping(false);
+  };
 
   return (
-    <div className="min-h-screen font-iosevka">
+    <div className="min-h-screen flex flex-col font-iosevka mx-auto">
+      {/* Header */}
       <header className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between relative">
@@ -203,114 +90,64 @@ export default function CropEditor() {
           </div>
         </div>
       </header>
-      <div className="max-w-6xl mx-auto px-14 mt-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Crop Image</CardTitle>
-            <CardDescription>
-              Drag the corners or edges to adjust the crop area.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-4">
-              <ReactCrop
-                crop={crop}
-                onChange={(c) => setCrop(c)}
-                className="max-h-[70vh] mx-auto"
-                keepSelection
-              >
-                <img
-                  ref={imgRef}
-                  src="/images/ktm-car.jpg"
-                  alt="Image to crop"
-                  onKeyDown={handleKeyPress}
-                  tabIndex={0}
-                  className="max-h-[70vh] w-auto mx-auto focus:outline-none"
-                />
-              </ReactCrop>
-            </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-4 p-4 bg-gray-100 rounded-lg">
-              <div className="text-sm">X: {getCropPixels()?.x || 0}px</div>
-              <div className="text-sm">Y: {getCropPixels()?.y || 0}px</div>
-              <div className="text-sm">Width: {getCropPixels()?.width || 0}px</div>
-              <div className="text-sm">Height: {getCropPixels()?.height || 0}px</div>
-              <div className="col-span-2 text-sm text-gray-500">
-                Note: 'X' is the distance from left edge and 'Y' is the distance from top edge.
-              </div>
-            </div>
-
-            <Button
-              onClick={() => setShowSaveOptions(true)}
-              className="w-full bg-blue-500 hover:bg-blue-600"
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
+        <div className="flex items-center mb-6">
+          {isCropping && (
+            <Button 
+              variant="outline"
+              size="sm"
+              onClick={handleBackToAssets}
+              className="mr-3"
             >
-              <Save className="mr-2 h-4 w-4" />
-              Finish Cropping
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Back to Assets
             </Button>
-          </CardContent>
-        </Card>
-
-        {/* Save Options Dialog */}
-        <Dialog open={showSaveOptions} onOpenChange={setShowSaveOptions}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Save Options</DialogTitle>
-              <DialogDescription className='font-iosevka'>
-                Choose how you want to save the cropped image
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid grid-cols-2 gap-4 mt-4 font-iosevka">
-              <Button
-                onClick={() => handleSaveOption('replace')}
-                className="flex items-center justify-center bg-blue-500 hover:bg-blue-600"
-              >
-                <Replace className="mr-2 h-4 w-4" />
-                Replace Original
-              </Button>
-              <Button
-                onClick={() => handleSaveOption('copy')}
-                variant="outline"
-                className="flex items-center justify-center"
-              >
-                <Copy className="mr-2 h-4 w-4" />
-                Save as Copy
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Preview Dialog */}
-        <Dialog open={showPreview} onOpenChange={setShowPreview}>
-          <DialogContent className="max-w-3xl font-iosevka">
-            <DialogHeader>
-              <DialogTitle>Cropped Image Preview</DialogTitle>
-            </DialogHeader>
-            <Button onClick={handleDownload} className="mt-4 bg-green-500 hover:bg-green-600">
-              Download Cropped Image
-            </Button>
-            <div className="mt-4">
-              {croppedImageUrl ? (
-                <img 
-                  src={croppedImageUrl} 
-                  alt="Cropped preview" 
-                  className="max-h-[60vh] w-auto mx-auto"
-                />
-              ) : (
-                <p className="text-center text-gray-500"> Cropped Image </p>
+          )}
+          <h1 className="text-2xl font-bold font-iosevka">
+            {isCropping && selectedAsset
+              ? `Crop: ${assetDisplayName || 'Image'}`
+              : 'Browse Webflow Assets'
+            }
+          </h1>
+        </div>
+        
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          {isCropping && selectedAsset ? (
+            <CropControls 
+              onApply={handleCrop} 
+              imageUrl={selectedAsset.url} 
+              imageTitle={assetDisplayName}
+            />
+          ) : (
+            <div className="p-6">
+              <AssetsBrowser 
+                onAssetSelect={handleAssetSelect}
+                selectedAsset={selectedAsset}
+              />
+              
+              {selectedAsset && (
+                <div className="mt-6 flex items-center justify-between border-t pt-4">
+                  <div>
+                    <h3 className="font-medium">{assetDisplayName}</h3>
+                    <p className="text-sm text-gray-500">
+                      {selectedAsset.width && selectedAsset.height 
+                        ? `${selectedAsset.width} × ${selectedAsset.height} px` 
+                        : "Loading dimensions..."}
+                      {selectedAsset.fileSize && ` • ${Math.round(selectedAsset.fileSize / 1024)} KB`}
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={() => setIsCropping(true)}
+                    className="bg-black hover:bg-gray-800"
+                  >
+                    Start Cropping
+                  </Button>
+                </div>
               )}
             </div>
-            <div className="flex justify-end mt-4">
-              <Button
-                onClick={() => {
-                  setShowPreview(false);
-                  router.back();
-                }}
-              >
-                Done
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+          )}
+        </div>
       </div>
     </div>
   );
