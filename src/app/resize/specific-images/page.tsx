@@ -20,7 +20,7 @@ export default function SpecificImagesPage() {
   const handleResize = (dimensions: { width: number; height: number }) => {
     toast({
       title: "Success",
-      description: `Image resized to ${dimensions.width}x${dimensions.height} and updated in Webflow.`,
+      description: `Image resized to ${dimensions.width}x${dimensions.height} and uploaded to Webflow assets.`,
     });
   };
 
@@ -82,8 +82,6 @@ export default function SpecificImagesPage() {
             <ResizeControls 
               onApply={handleResize} 
               imageUrl={selectedImage.url} 
-              collectionItemId={selectedItem?.id} 
-              fieldName={selectedImage.field} // Using the existing field property
             />
           </div>
         )}

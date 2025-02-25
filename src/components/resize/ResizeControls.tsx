@@ -7,15 +7,11 @@ import { Loader2 } from "lucide-react";
 interface ResizeControlsProps {
   onApply: (dimensions: { width: number; height: number }) => void;
   imageUrl: string;
-  collectionItemId?: string;
-  fieldName?: string;
 }
 
 export const ResizeControls = ({ 
   onApply, 
-  imageUrl, 
-  collectionItemId, 
-  fieldName 
+  imageUrl 
 }: ResizeControlsProps) => {
   const [maintainAspectRatio, setMaintainAspectRatio] = useState(true);
   const [width, setWidth] = useState('');
@@ -88,9 +84,9 @@ export const ResizeControls = ({
     }
   };
 
-  const resizeAndUpdateWebflow = async () => {
-    if (!width || !height || !collectionItemId || !fieldName) {
-      setError("Missing required information for updating Webflow");
+  const resizeAndUploadToWebflow = async () => {
+    if (!width || !height) {
+      setError("Please specify dimensions");
       return;
     }
 
@@ -132,8 +128,6 @@ export const ResizeControls = ({
       // Create FormData to send to server
       const formData = new FormData();
       formData.append('file', blob, `resized-image-${width}x${height}.png`);
-      formData.append('collectionItemId', collectionItemId);
-      formData.append('fieldName', fieldName);
       
       // Send to your API endpoint
       const response = await fetch('/api/update-webflow-image', {
@@ -143,10 +137,11 @@ export const ResizeControls = ({
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update image in Webflow');
+        throw new Error(errorData.message || 'Failed to upload image to Webflow');
       }
       
       const result = await response.json();
+      console.log('Webflow upload result:', result);
       
       // Notify parent component of successful resize
       onApply({
@@ -156,7 +151,7 @@ export const ResizeControls = ({
       
       setSuccess(true);
     } catch (error) {
-      console.error('Error updating image in Webflow:', error);
+      console.error('Error uploading image to Webflow:', error);
       setError(error instanceof Error ? error.message : 'An unknown error occurred');
     } finally {
       setIsLoading(false);
@@ -225,22 +220,22 @@ export const ResizeControls = ({
 
         {success && (
           <div className="p-3 bg-green-100 text-green-800 rounded-md text-sm">
-            Image successfully resized and updated in Webflow!
+            Image successfully resized and uploaded to Webflow assets!
           </div>
         )}
 
         <Button 
-          onClick={resizeAndUpdateWebflow}
+          onClick={resizeAndUploadToWebflow}
           className="w-full"
-          disabled={!width || !height || isLoading || !collectionItemId || !fieldName}
+          disabled={!width || !height || isLoading}
         >
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Updating...
+              Uploading...
             </>
           ) : (
-            'Resize & Update in Webflow'
+            'Resize & Upload to Webflow'
           )}
         </Button>
       </div>
