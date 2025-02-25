@@ -3,15 +3,19 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import axios from 'axios';
+// No need to import WebflowAsset here unless you're using it directly
 
 interface ResizeControlsProps {
   onApply: (dimensions: { width: number; height: number }) => void;
   imageUrl: string;
+  imageTitle?: string;
 }
 
 export const ResizeControls = ({ 
   onApply, 
-  imageUrl 
+  imageUrl,
+  imageTitle = 'Image'
 }: ResizeControlsProps) => {
   const [maintainAspectRatio, setMaintainAspectRatio] = useState(true);
   const [width, setWidth] = useState('');
@@ -21,8 +25,14 @@ export const ResizeControls = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
+  const [proxyImageUrl, setProxyImageUrl] = useState<string>('');
 
   useEffect(() => {
+    // Create a proxied image URL to avoid CORS issues
+    const encodedUrl = encodeURIComponent(imageUrl);
+    const proxiedUrl = `/api/proxy-image?url=${encodedUrl}`;
+    setProxyImageUrl(proxiedUrl);
+    
     // Load original image dimensions
     const img = new Image();
     img.onload = () => {
@@ -35,7 +45,11 @@ export const ResizeControls = ({
       setWidth(img.naturalWidth.toString());
       setHeight(img.naturalHeight.toString());
     };
-    img.src = imageUrl;
+    img.onerror = (e) => {
+      console.error('Error loading image:', e);
+      setError('Failed to load image. Please try another one.');
+    };
+    img.src = proxiedUrl;
   }, [imageUrl]);
 
   const handleWidthChange = (newWidth: string) => {
@@ -95,16 +109,26 @@ export const ResizeControls = ({
     setSuccess(false);
 
     try {
-      // Create resized image
+      // First fetch the image through our proxy to avoid CORS
+      const imageResponse = await axios.get(proxyImageUrl, {
+        responseType: 'blob'
+      });
+      
+      const imageBlob = imageResponse.data;
+      
+      // Create an object URL from the blob
+      const objectUrl = URL.createObjectURL(imageBlob);
+      
+      // Create image element from object URL
       const img = new Image();
-      img.crossOrigin = "anonymous";
       
       await new Promise((resolve, reject) => {
         img.onload = resolve;
         img.onerror = reject;
-        img.src = imageUrl;
+        img.src = objectUrl;
       });
       
+      // Resize the image
       const canvas = document.createElement('canvas');
       canvas.width = parseInt(width);
       canvas.height = parseInt(height);
@@ -115,6 +139,9 @@ export const ResizeControls = ({
       }
       
       ctx.drawImage(img, 0, 0, parseInt(width), parseInt(height));
+      
+      // Clean up object URL
+      URL.revokeObjectURL(objectUrl);
       
       // Convert to blob
       const blob = await new Promise<Blob | null>((resolve) => {
@@ -128,6 +155,7 @@ export const ResizeControls = ({
       // Create FormData to send to server
       const formData = new FormData();
       formData.append('file', blob, `resized-image-${width}x${height}.png`);
+      formData.append('originalUrl', imageUrl);
       
       // Send to your API endpoint
       const response = await fetch('/api/update-webflow-image', {
