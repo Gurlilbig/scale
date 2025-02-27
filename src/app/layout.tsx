@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import localFont from 'next/font/local'
+import Script from 'next/script'
 
 const iosevka = localFont({
   src: [
@@ -46,6 +47,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${iosevka.variable}`}>
+      <head>
+        <Script src="/webflow-extension-setup.js" strategy="beforeInteractive" />
+      </head>
       <body>{children}</body>
     </html>
   );

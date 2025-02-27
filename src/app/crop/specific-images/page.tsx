@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation';
 import { AssetsBrowser } from '@/components/resize/AssetsBrowser';
 import { CropControls } from '@/components/crop/CropControls';
 import { useToast } from "@/components/hooks/use-toast";
-import { Home, Layout, ArrowLeft, Crop } from 'lucide-react';
+import { Home, ArrowLeft, Crop } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { WebflowAsset } from '@/app/types/webflow'; // Import shared type
+import { WebflowAsset } from '@/app/types/webflow';
+import { setExtensionSize, isWebflowEnvironment } from '@/lib/webflow-extension';
 
 // Helper function to extract filename from URL
 const getFilenameFromUrl = (url: string | undefined): string => {
@@ -36,6 +37,29 @@ export default function CropSpecificImagesPage() {
   const [isCropping, setIsCropping] = useState(false);
   const { toast } = useToast();
   const [assetDisplayName, setAssetDisplayName] = useState<string>('');
+  const [cropCallbackId] = useState(`crop-callback-${Date.now()}`);
+
+  // Set extension size based on current view
+  useEffect(() => {
+    const updateSize = async () => {
+      if (!isWebflowEnvironment()) return;
+      
+      try {
+        // Use large size for cropping, comfortable size for browsing
+        if (isCropping) {
+          await setExtensionSize('large');
+          console.log('Set extension size to large for cropping');
+        } else {
+          await setExtensionSize('comfortable');
+          console.log('Set extension size to comfortable for browsing');
+        }
+      } catch (error) {
+        console.error('Failed to set extension size:', error);
+      }
+    };
+    
+    updateSize();
+  }, [isCropping]);
 
   useEffect(() => {
     if (selectedAsset) {
@@ -47,12 +71,56 @@ export default function CropSpecificImagesPage() {
     }
   }, [selectedAsset]);
 
-  const handleCrop = (dimensions: { width: number; height: number }) => {
-    toast({
-      title: "Success",
-      description: `Image cropped to ${dimensions.width}x${dimensions.height} and uploaded to Webflow assets.`,
-    });
-  };
+  // Set up event listener for the crop result
+  useEffect(() => {
+    const handleCropApplied = (event: CustomEvent) => {
+      if (event.detail?.callbackId === cropCallbackId) {
+        // This is our event
+        const { width, height } = event.detail.dimensions;
+        
+        // Show success toast
+        toast({
+          title: "Success",
+          description: `Image cropped to ${width}x${height} and uploaded to Webflow assets.`,
+        });
+      }
+    };
+    
+    // Add event listener
+    window.addEventListener('cropApplied', handleCropApplied as EventListener);
+    
+    // Check localStorage as a fallback (in case we missed the event)
+    const checkLocalStorage = () => {
+      const storedDataStr = localStorage.getItem('cropDimensions');
+      if (storedDataStr) {
+        try {
+          const storedData = JSON.parse(storedDataStr);
+          // Only use if it's recent (last 10 seconds)
+          const isRecent = Date.now() - storedData.timestamp < 10000;
+          
+          if (isRecent) {
+            toast({
+              title: "Success",
+              description: `Image cropped to ${storedData.width}x${storedData.height} and uploaded to Webflow assets.`,
+            });
+            // Clear after using
+            localStorage.removeItem('cropDimensions');
+          }
+        } catch (e) {
+          console.error("Error parsing localStorage data:", e);
+        }
+      }
+    };
+    
+    // Check localStorage on component mount (with a small delay)
+    const timeoutId = setTimeout(checkLocalStorage, 1000);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('cropApplied', handleCropApplied as EventListener);
+      clearTimeout(timeoutId);
+    };
+  }, [cropCallbackId, toast]);
 
   // In your page.tsx
   const handleAssetSelect = (asset: WebflowAsset) => {
@@ -115,7 +183,7 @@ export default function CropSpecificImagesPage() {
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           {isCropping && selectedAsset ? (
             <CropControls 
-              onApply={handleCrop} 
+              onApplyId={cropCallbackId}
               imageUrl={selectedAsset.url} 
               imageTitle={assetDisplayName}
             />

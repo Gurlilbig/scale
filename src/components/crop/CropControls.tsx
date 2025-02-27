@@ -259,7 +259,14 @@ export const CropControls: React.FC<CropControlsProps> = ({
       
       // Create FormData to send to server
       const formData = new FormData();
-      const filename = `cropped-${imageTitle || 'image'}-${dimensions.width}x${dimensions.height}.jpg`;
+      
+      // Truncate imageTitle if it's too long to prevent Webflow filename length error
+      // Webflow has a limit of approximately 240 characters for filenames
+      const truncatedTitle = imageTitle && imageTitle.length > 30 
+        ? imageTitle.substring(0, 27) + '...' 
+        : (imageTitle || 'image');
+      
+      const filename = `crop-${truncatedTitle}-${dimensions.width}x${dimensions.height}.jpg`;
       formData.append('file', blob, filename);
       formData.append('originalUrl', imageUrl);
       

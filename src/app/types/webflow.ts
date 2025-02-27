@@ -8,3 +8,8 @@ export interface WebflowAsset {
     height?: number;
     fileType?: string;
   }
+
+  export interface WebflowExtension {
+    // Extension size API
+    setExtensionSize(size: 'default' | 'comfortable' | 'large' | {width: number; height: number}): Promise<null>;
+  }

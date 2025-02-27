@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link'; // Import the Link component
+import Link from 'next/link';
 import { Home, Layout, Crop } from 'lucide-react';
 import { FeatureCard } from '@/components/home/FeatureCard';
 import { ResizeModal } from '@/components/home/ResizeModal';
@@ -24,7 +24,6 @@ export default function HomePage() {
       <header className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center">
-            {/* Wrap the Home icon with Link */}
             <Link href="/" passHref>
               <div className="cursor-pointer">
                 <Home className="h-6 w-6 text-blue-600" />
