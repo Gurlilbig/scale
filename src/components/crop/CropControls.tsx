@@ -21,16 +21,18 @@ import {
 } from "@/components/ui/card";
 import { Save, Replace, Copy, Download, Loader2 } from 'lucide-react';
 
+// Define serializable props interface
 interface CropControlsProps {
   imageUrl: string;
   imageTitle?: string;
-  onApply: (dimensions: { width: number; height: number }) => void;
+  // Instead of a function type, we'll use a string identifier for the callback
+  onApplyId?: string;
 }
 
 export const CropControls: React.FC<CropControlsProps> = ({ 
   imageUrl, 
   imageTitle = 'Image',
-  onApply 
+  onApplyId 
 }) => {
   const { toast } = useToast();
   const imgRef = useRef<HTMLImageElement>(null);
@@ -189,8 +191,23 @@ export const CropControls: React.FC<CropControlsProps> = ({
             await uploadToWebflow(blob, pixels, 'copy');
           }
           
-          // Call the onApply callback with dimensions
-          onApply({ width: pixels.width, height: pixels.height });
+          // Instead of directly calling onApply, dispatch a custom event
+          if (onApplyId) {
+            const cropEvent = new CustomEvent('cropApplied', {
+              detail: {
+                callbackId: onApplyId,
+                dimensions: { width: pixels.width, height: pixels.height }
+              }
+            });
+            window.dispatchEvent(cropEvent);
+          }
+          
+          // Store the dimensions in localStorage as a fallback approach
+          localStorage.setItem('cropDimensions', JSON.stringify({
+            width: pixels.width, 
+            height: pixels.height,
+            timestamp: Date.now()
+          }));
         }
       } else {
         toast({
