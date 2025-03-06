@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { OptionCard } from './OptionCard';
+import React from 'react';
 
 interface ResizeModalProps {
   isOpen: boolean;

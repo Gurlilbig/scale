@@ -1,6 +1,7 @@
 // pages/api/proxy-image.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
+import React from 'react';
 
 export default async function handler(
   req: NextApiRequest,

@@ -2,6 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
 import { fetchWebflowToken } from '../api/fetch-collections';
+import React from 'react';
 
 export default async function handler(
   req: NextApiRequest,

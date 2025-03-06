@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Collection } from './CollectionSelector';
+import React from 'react';
 
 interface ImageDimensions {
   width: number;

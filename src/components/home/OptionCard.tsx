@@ -1,5 +1,6 @@
 // src/components/home/OptionCard.tsx
 import { LucideIcon } from 'lucide-react';
+import React from 'react';
 
 interface OptionCardProps {
   icon: LucideIcon;

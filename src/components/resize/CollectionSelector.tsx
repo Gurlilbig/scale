@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
+import React from 'react';
 
 interface Collection {
   id: string;

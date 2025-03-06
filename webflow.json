@@ -1,0 +1,6 @@
+{
+    "name": "Scale",
+    "apiVersion": "2",
+    "size": "large",
+    "publicDir": "public"
+}

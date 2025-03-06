@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import axios from 'axios';
 // No need to import WebflowAsset here unless you're using it directly
+import React from 'react';
 
 interface ResizeControlsProps {
   onApply: (dimensions: { width: number; height: number }) => void;

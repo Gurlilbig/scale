@@ -6,6 +6,7 @@ import crypto from 'crypto';
 import axios from 'axios';
 import FormData from 'form-data';
 import { fetchWebflowToken } from '../api/fetch-collections';
+import React from 'react';
 
 export const config = {
   api: {

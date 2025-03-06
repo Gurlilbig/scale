@@ -4,6 +4,7 @@ import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { WebflowAsset } from '@/app/types/webflow'; // Import shared type
+import React from 'react';
 
 interface AssetsBrowserProps {
   onAssetSelect: (asset: WebflowAsset) => void;

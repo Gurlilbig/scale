@@ -8,6 +8,7 @@ import { useToast } from "@/components/hooks/use-toast";
 import { Home, Layout, ArrowLeft } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { WebflowAsset } from '@/app/types/webflow'; // Import shared type
+import React from 'react';
 
 // Helper function to extract filename from URL
 const getFilenameFromUrl = (url: string | undefined): string => {

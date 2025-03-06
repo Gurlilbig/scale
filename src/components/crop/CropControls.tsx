@@ -1,5 +1,5 @@
 'use client';
-
+import React from 'react';
 import { useState, useRef, useEffect } from 'react';
 import ReactCrop, { type Crop as ReactCropType } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
