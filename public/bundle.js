@@ -62,11 +62,9 @@
             
             // Capture the event
             posthog.capture(eventName, properties);
-            console.log(`PostHog event tracked: ${eventName}`, properties);
           } else {
             // For anonymous events
             posthog.capture(eventName, properties);
-            console.log(`PostHog anonymous event tracked: ${eventName}`, properties);
           }
         } catch (error) {
           console.error('Error tracking auth event:', error);
@@ -99,7 +97,6 @@
           
           // Capture the event
           posthog.capture(eventName, eventProperties);
-          console.log(`PostHog asset event tracked: ${eventName}`, eventProperties);
         } catch (error) {
           console.error('Error tracking asset event:', error);
         }
@@ -198,8 +195,6 @@
       const assetItems = document.querySelectorAll('.asset-item');
       const loadedImages = document.querySelectorAll('.asset-image-loaded');
       
-      console.log(`Image loading verification: Found ${assetItems.length} asset items with ${loadedImages.length} loaded images`);
-      
       // If no images are loaded but we have asset items, force reload
       if (loadedImages.length === 0 && assetItems.length > 0) {
         console.log('No images are loaded, forcing reload of all visible assets');
@@ -245,8 +240,6 @@
         console.log('Lazy load observer not initialized, reinitializing');
         initLazyLoading();
       }
-      
-      console.log(`Found ${assetItems.length} asset items to process`);
       
       // Use a more aggressive approach for initial page load
       let loadedCount = 0;
@@ -315,8 +308,6 @@
                   
                   // Update the dimension display in the DOM
                   dimensionsElement.textContent = `${updatedAsset.width || 'N/A'}px × ${updatedAsset.height || 'N/A'}px`;
-                  
-                  console.log(`Updated dimensions for asset ${assetId}: ${updatedAsset.width}×${updatedAsset.height}`);
                 }
               })
               .catch(error => {
@@ -334,8 +325,6 @@
           }
         }
       });
-      
-      console.log(`Attempted to load ${loadedCount} images immediately`);
     }, 150);
   }
 
@@ -475,11 +464,7 @@
     }
     
     try {
-      console.log(`Calling API: ${url}`, { method: options.method || 'GET' });
       const response = await fetch(url, options);
-      
-      // Log response status
-      console.log(`API response status: ${response.status}`);
       
       // Handle specific status codes
       if (response.status === 401) {
@@ -2497,13 +2482,11 @@
         if (state.selectedAsset && state.selectedAsset.width && state.selectedAsset.height) {
           originalWidth = state.selectedAsset.width;
           originalHeight = state.selectedAsset.height;
-          console.log(`Using dimensions from selectedAsset: ${originalWidth}×${originalHeight}`);
         } 
         // If we still don't have dimensions, use defaults
         if (originalWidth <= 0 || originalHeight <= 0) {
           originalWidth = 150;
           originalHeight = 150;
-          console.log(`Using default dimensions: ${originalWidth}×${originalHeight}`);
         }
       }
       
@@ -2511,7 +2494,6 @@
       if (!viewBox && originalWidth > 0 && originalHeight > 0) {
         viewBox = `0 0 ${originalWidth} ${originalHeight}`;
         svgElement.setAttribute('viewBox', viewBox);
-        console.log("Added viewBox attribute:", viewBox);
       }
       
       // Get viewBox parameters
@@ -2546,20 +2528,6 @@
       // Also set integer values in the style for consistent rendering
       svgElement.style.width = `${Math.round(newViewBoxWidth)}px`;
       svgElement.style.height = `${Math.round(newViewBoxHeight)}px`;
-      
-      // Log the cropping details for debugging
-      console.log("SVG Crop Details:", {
-        original: { width: originalWidth, height: originalHeight, viewBox },
-        crop: { x: cropX, y: cropY, width: cropWidth, height: cropHeight },
-        new: { 
-          viewBox: `${newViewBoxMinX} ${newViewBoxMinY} ${newViewBoxWidth} ${newViewBoxHeight}`,
-          width: Math.round(newViewBoxWidth),
-          height: Math.round(newViewBoxHeight)
-        }
-      });
-      
-      // Also log the integer dimensions for confirmation
-      console.log("Final integer dimensions:", Math.round(newViewBoxWidth), "×", Math.round(newViewBoxHeight));
       
       // Serialize back to string
       const serializer = new XMLSerializer();
@@ -2703,10 +2671,10 @@
           // Use the updated openOAuthWindow function that returns a promise
           openOAuthWindow()
             .then(result => {
-              console.log('Authentication completed successfully:', result);
+              console.log('Authentication completed successfully.');
             })
             .catch(error => {
-              console.error('Authentication failed:', error);
+              console.error('Authentication failed.');
               // You may want to show a notification here, but the function already handles that
             });
         });
@@ -2880,8 +2848,6 @@
       
       // Update state
       state.webflowToken = token;
-      
-      console.log('Webflow token stored for site:', siteId);
       return true;
     } catch (error) {
       console.error('Error storing token:', error);
@@ -2944,8 +2910,6 @@
     
     if (assetsToPreload.length === 0) return;
     
-    console.log(`Preloading ${assetsToPreload.length} critical assets`);
-    
     // Create an array of promises to track loading
     const preloadPromises = assetsToPreload.map((asset, index) => {
       return new Promise((resolve) => {
@@ -2990,8 +2954,6 @@
     
     // After all critical assets are loaded, update any visible elements
     Promise.all(preloadPromises).then(() => {
-      console.log('Critical asset preloading complete');
-      
       // Find all asset-item elements that should now show their images
       const assetItems = document.querySelectorAll('.asset-item');
       assetItems.forEach(item => {
@@ -3242,17 +3204,15 @@
         
       // Handle message event for the auth code
       // let eventTracker = false;
-      console.log("event tracker outside- ", state.eventTracker);
+      // console.log("Event tracker outside- ", state.eventTracker);
       window.addEventListener('message', async function messageHandler(event) {
-        console.log("event tracker inside 1- ", state.eventTracker);
+        // console.log("event tracker inside 1- ", state.eventTracker);
         // Clean up the event listener
         window.removeEventListener('message', messageHandler);
-        console.log('Message received:', event.data);
             
         if (event.data && event.data.type === 'WEBFLOW_AUTH_SUCCESS' && state.eventTracker === false) {
           state.eventTracker = true;
-          console.log("event tracker inside 2- ", state.eventTracker);
-          console.log('Auth success message received with code:', event.data.code);
+          // console.log("event tracker inside 2- ", state.eventTracker);
           
           // Get the auth code
           const authCode = event.data.code;
@@ -3263,9 +3223,6 @@
             if (!currentSiteId) {
               throw new Error('Could not determine current site ID');
             }
-  
-            console.log('Making verify-user-auth API call with code:', authCode.substring(0, 5) + '...');
-            console.log('API URL:', `${API_BASE_URL}/user/verify-user-auth`);
                 
             // Make the API call to exchange code for token
             const response = await fetch(`${API_BASE_URL}/user/verify-user-auth`, {
@@ -3278,9 +3235,6 @@
                 clientId: 'd403eff016358ce6fa71358de13b7cee8955c4b7497aade554ac9c9a3b17fbe3'
               })
             });
-  
-            console.log('verify-user-auth API response status:', response.status);
-            console.log('verify-user-auth API response headers:', Object.fromEntries([...response.headers.entries()]));
             
             if (!response.ok) {
               const errorText = await response.text();
@@ -3325,9 +3279,7 @@
               if (state.currentView === 'assets-browser') {
                 fetchWebflowAssets();
               }
-              
-              // Now let's call the verify-auth-code-webflow API to add site information
-              console.log('Token from verify-user-auth API call ', result.token);
+          
               if (result.token) {
                 try {
                   const verifyResponse = await fetch(`${API_BASE_URL}/user/verify-auth-code-webflow`, {
@@ -3341,19 +3293,17 @@
                       clientId: 'd403eff016358ce6fa71358de13b7cee8955c4b7497aade554ac9c9a3b17fbe3'
                     })
                   });
-                  
-                  console.log('verify-user-code-webflow API response status:', verifyResponse.status);
 
                   const verifyResult = await verifyResponse.json();
                   
                   if (verifyResult.success) {
-                    console.log('Successfully added site information to user account:', verifyResult);
+                    console.log('Successfully added site information to user account.');
                     // You can optionally show another notification or update the UI here
                   } else {
-                    console.error('Failed to add site information:', verifyResult);
+                    console.error('Failed to add site information.');
                   }
                 } catch (verifyError) {
-                  console.error('Error verifying auth code for site info:', verifyError);
+                  console.error('Error verifying auth code for site info.');
                 }
               }
               
@@ -3415,7 +3365,7 @@
         return false;
       }
       
-      console.log('Checking for Webflow connection for site ID:', currentSiteId);
+      // console.log('Checking for Webflow connection for site ID:', currentSiteId);
       
       // Check if we have a site-specific token first
       const siteSpecificToken = localStorage.getItem(`webflow_token_${currentSiteId}`);
@@ -3424,27 +3374,6 @@
         state.webflowToken = siteSpecificToken;
         return true;
       }
-      
-      // If no site-specific token, check generic token as fallback (for backward compatibility)
-      // const genericToken = localStorage.getItem('webflowToken');
-      // const siteSpecificKey = `webflow_token_${currentSiteId}`;
-
-      // if (genericToken) {
-      //   console.log('Found generic token in localStorage, verifying if valid for this site...');
-        
-      //   // Try to validate the generic token with the current site by making a test API call
-      //   try {
-      //     const isValid = await validateTokenForSite(genericToken, currentSiteId);
-      //     if (isValid) {
-      //       // If valid, save it as site-specific for future use
-      //       localStorage.setItem(siteSpecificKey, genericToken);
-      //       state.webflowToken = genericToken;
-      //       return true;
-      //     }
-      //   } catch (error) {
-      //     console.log('Generic token not valid for this site:', error);
-      //   }
-      // }
       
       // If we get here, we don't have a valid connection for this site
       return false;
@@ -4398,7 +4327,7 @@
               });
             }
   
-            console.log("Resize parameters:", { width, height, quality, keepAspectRatio });
+            // console.log("Resize parameters:", { width, height, quality, keepAspectRatio });
             
             // Check if we have a valid image URL
             if (!state.selectedAsset || !state.selectedAsset.url) {
@@ -4511,19 +4440,15 @@
             
             // Get the current site ID to send to the server
             const currentSiteId = await getCurrentWebflowSiteId();
-            console.log("Current Site Info:", currentSiteId);
+            // console.log("Current Site Info:", currentSiteId);
             
             // Upload to Webflow with site ID
-            console.log("Preparing to upload file:", resizedFile.name);
             const formData = new FormData();
             formData.append('file', resizedFile);
             
             // Create URL with site ID as query parameter
             const uploadUrl = `http://localhost:3001/api/direct-upload-webflow-image?siteId=${currentSiteId}`;
-            
-            console.log("Sending upload request to:", uploadUrl);
-            console.log("With site ID:", currentSiteId);
-            
+                     
             // Use AbortController to handle timeouts
             const controller = new AbortController();
             const signal = controller.signal;
@@ -4560,7 +4485,7 @@
               }
               
               const uploadResult = await uploadResponse.json();
-              console.log("Upload successful:", uploadResult);
+              console.log("Upload successful.");
   
               // Track successful resize
               if (window.posthogAnalytics) {
@@ -4964,7 +4889,7 @@
     
     // Check if image is an SVG
     const isSvg = state.selectedAsset && isSvgAsset(state.selectedAsset);
-    console.log("Is SVG image:", isSvg);
+    // console.log("Is SVG image:", isSvg);
     
     // Set crossorigin to anonymous for all images to help with CORS
     imgElement.crossOrigin = "anonymous";
@@ -5073,7 +4998,6 @@
               const scaleY = MIN_CROP_DIMENSION / height;
               scale = Math.max(Math.min(scaleX, scaleY), 1); // Always scale up, capped at 5x
               scale = Math.min(scale, 5); // Cap at 5x to prevent extreme scaling
-              console.log(`Scaling small SVG by factor of ${scale}`);
             }
             
             // Case 2: Scale down large SVGs to maximum size
@@ -5096,7 +5020,7 @@
               // Update the scale
               scale = idealScale;
               
-              console.log(`Scaling large SVG down by factor of ${scale} from ${width}×${height}`);
+              // console.log(`Scaling large SVG down by factor of ${scale} from ${width}×${height}`);
             }
             
             // Apply scaled dimensions - ensure we have a minimum size
@@ -5110,10 +5034,10 @@
               const additionalScale = MIN_DISPLAY_SIZE / smallestDim;
               displayWidth = Math.round(displayWidth * additionalScale);
               displayHeight = Math.round(displayHeight * additionalScale);
-              console.log(`Enforcing minimum display size: ${displayWidth}×${displayHeight}`);
+              // console.log(`Enforcing minimum display size: ${displayWidth}×${displayHeight}`);
             }
             
-            console.log(`Final display dimensions: ${displayWidth}×${displayHeight} (scaled from ${width}×${height})`);
+            // console.log(`Final display dimensions: ${displayWidth}×${displayHeight} (scaled from ${width}×${height})`);
             
             // ----------------------------------------------
             
@@ -5158,9 +5082,6 @@
             
             // Set up crop interactions
             setupCropOverlayInteractions(originalWidth, originalHeight);
-            
-            console.log("SVG rendered successfully with scaled dimensions:", displayWidth, "x", displayHeight, 
-                        "(original:", originalWidth, "x", originalHeight, ")");
           } catch (error) {
             console.error("Error rendering SVG content:", error);
             showSvgFallback();
@@ -5173,7 +5094,7 @@
     } else {
       // Regular image handling (non-SVG)
       imgElement.onload = function() {
-        console.log("Image loaded with dimensions:", imgElement.offsetWidth, "x", imgElement.offsetHeight);
+        // console.log("Image loaded with dimensions:", imgElement.offsetWidth, "x", imgElement.offsetHeight);
         
         // Measure the actual rendered image dimensions
         const imgRect = imgElement.getBoundingClientRect();
@@ -5683,9 +5604,6 @@
       // Create URL with site ID as query parameter
       const uploadUrl = `http://localhost:3001/api/direct-upload-webflow-image?siteId=${currentSiteId}`;
       
-      console.log("Sending upload request to:", uploadUrl);
-      console.log("With site ID:", currentSiteId);
-      
       // Make the request
       const uploadResponse = await fetch(uploadUrl, {
         method: 'POST',
@@ -5713,7 +5631,6 @@
       
       // Add tracking after successful upload
       const uploadResult = await uploadResponse.json();
-      console.log('Upload successful:', uploadResult);
       
       // Track successful crop
       if (window.posthogAnalytics) {
@@ -6444,8 +6361,6 @@
       return;
     }
     
-    console.log(`Batch preloading dimensions for ${assetsNeedingDimensions.length} assets`);
-    
     // Process in batches to avoid overwhelming the browser
     const BATCH_SIZE = 3;
     const processBatch = (startIndex) => {
@@ -6509,12 +6424,9 @@
     return new Promise((resolve, reject) => {
       // Skip if dimensions already exist
       if (asset.width && asset.height) {
-        console.log(`Asset ${asset.id} already has dimensions: ${asset.width}×${asset.height}`);
         resolve(asset);
         return;
       }
-      
-      console.log(`Preloading dimensions for asset ${asset.id}`);
       
       // Check if this is an SVG
       const isSvg = asset.url.toLowerCase().endsWith('.svg') || 
@@ -6552,8 +6464,6 @@
               // Parse dimensions to numbers, use defaults if parsing fails
               width = parseFloat(width) || 150;   // Default width if can't determine
               height = parseFloat(height) || 150; // Default height if can't determine
-              
-              console.log(`SVG dimensions extracted for asset ${asset.id}: ${width}×${height}`);
               
               // Return asset with dimensions
               resolve({
@@ -6600,8 +6510,6 @@
           // Check if dimensions are valid
           const width = img.naturalWidth || 150;
           const height = img.naturalHeight || 150;
-          
-          console.log(`Image dimensions loaded for asset ${asset.id}: ${width}×${height}`);
           
           resolve({
             ...asset,
@@ -6695,7 +6603,6 @@
       // If the API method fails, try to get the site ID from localStorage
       const storedSiteId = localStorage.getItem('currentWebflowSiteId');
       if (storedSiteId) {
-        console.log('Using stored site ID:', storedSiteId);
         return storedSiteId;
       }
       
@@ -6707,7 +6614,7 @@
         const pathParts = window.location.pathname.split('/');
         if (pathParts.length > 1 && pathParts[1].length > 10) {
           const possibleSiteId = pathParts[1];
-          console.log('Extracted site ID from URL:', possibleSiteId);
+          // console.log('Extracted site ID from URL:', possibleSiteId);
           return possibleSiteId;
         }
       }
