@@ -1,7 +1,7 @@
 // Webflow extension entry point (bundle.js)
 (function() {
   // API base URL - change this to match your production environment
-  const API_BASE_URL = 'https://pixie-backend-bheg.onrender.com/'; // Local development
+  const API_BASE_URL = 'https://pixie-backend-bheg.onrender.com'; // Local development
   // const client_id = process.env.CLIENT_ID;
   // console.log('Client ID:', client_id); 
 
