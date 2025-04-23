@@ -1,7 +1,7 @@
 // Webflow extension entry point (bundle.js)
 (function() {
   // API base URL - change this to match your production environment
-  const API_BASE_URL = 'http://localhost:3001'; // Local development
+  const API_BASE_URL = 'https://pixie-backend-bheg.onrender.com'; // Local development
   // const client_id = process.env.CLIENT_ID;
   // console.log('Client ID:', client_id); 
 
@@ -810,7 +810,7 @@
     
     try {
       // Call the API
-      const response = await fetch('http://localhost:3001/user/get-user-profile', {
+      const response = await fetch('https://pixie-backend-bheg.onrender.com/user/get-user-profile', {
         method: 'GET',
         headers: {
           'token': token,
@@ -4449,7 +4449,7 @@
             formData.append('file', resizedFile);
             
             // Create URL with site ID as query parameter
-            const uploadUrl = `http://localhost:3001/api/direct-upload-webflow-image?siteId=${currentSiteId}`;
+            const uploadUrl = `https://pixie-backend-bheg.onrender.com/api/direct-upload-webflow-image?siteId=${currentSiteId}`;
                      
             // Use AbortController to handle timeouts
             const controller = new AbortController();
@@ -5604,7 +5604,7 @@
       formData.append('file', croppedFile);
       
       // Create URL with site ID as query parameter
-      const uploadUrl = `http://localhost:3001/api/direct-upload-webflow-image?siteId=${currentSiteId}`;
+      const uploadUrl = `https://pixie-backend-bheg.onrender.com/api/direct-upload-webflow-image?siteId=${currentSiteId}`;
       
       // Make the request
       const uploadResponse = await fetch(uploadUrl, {
@@ -5723,7 +5723,7 @@
     
     // Use a proxy endpoint to avoid CORS issues
     const encodedUrl = encodeURIComponent(originalUrl);
-    return `http://localhost:3001/api/proxy-image?url=${encodedUrl}`;
+    return `https://pixie-backend-bheg.onrender.com/api/proxy-image?url=${encodedUrl}`;
   }
   
   function getFilenameFromUrl(url) {
@@ -6436,7 +6436,7 @@
       
       // Create a proxied URL to avoid CORS issues
       const encodedUrl = encodeURIComponent(asset.url);
-      const proxiedUrl = `http://localhost:3001/api/proxy-image?url=${encodedUrl}`;
+      const proxiedUrl = `https://pixie-backend-bheg.onrender.com/api/proxy-image?url=${encodedUrl}`;
       
       if (isSvg) {
         // For SVGs, fetch the content and parse it to extract dimensions
@@ -6635,7 +6635,7 @@
     state.error = null;
     renderApp(document.getElementById('root'));
     
-    // try {
+    try {
       // Get the current site ID
       const currentSiteId = await getCurrentWebflowSiteId();
       if (!currentSiteId) {
@@ -6705,18 +6705,18 @@
       
       // Apply filters and search
       applyFiltersAndSearch();
-    // } catch (error) {
-      // console.error('Detailed Fetch Assets Error:', {
-      //   message: error.message,
-      //   stack: error.stack
-      // });
+    } catch (error) {
+      console.error('Detailed Fetch Assets Error:', {
+        message: error.message,
+        stack: error.stack
+      });
       
-      // state.error = error.message || 'Failed to load assets. Please connect your Webflow account.';
-      // state.needsAuthorization = true;
-    // } finally {
-    //   state.isLoading = false;
-    //   renderApp(document.getElementById('root'));
-    // }
+      state.error = error.message || 'Failed to load assets. Please connect your Webflow account.';
+      state.needsAuthorization = true;
+    } finally {
+      state.isLoading = false;
+      renderApp(document.getElementById('root'));
+    }
   }
   
   // Initialize the extension when the DOM is fully loaded
