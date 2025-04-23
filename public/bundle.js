@@ -1,7 +1,9 @@
 // Webflow extension entry point (bundle.js)
 (function() {
   // API base URL - change this to match your production environment
-  const API_BASE_URL = 'http://localhost:3001'; // Local development
+  const API_BASE_URL = 'https://ebbb-2405-201-500c-4040-8006-6c7f-9f6f-1949.ngrok-free.app'; // Local development
+  // const client_id = process.env.CLIENT_ID;
+  // console.log('Client ID:', client_id); 
 
   // State management for the application
   const state = {
@@ -6633,7 +6635,7 @@
     state.error = null;
     renderApp(document.getElementById('root'));
     
-    try {
+    // try {
       // Get the current site ID
       const currentSiteId = await getCurrentWebflowSiteId();
       if (!currentSiteId) {
@@ -6656,13 +6658,18 @@
       // Store the token in state for later use
       state.webflowToken = token;
       
+      console.log('Site token - ', state.webflowToken);
+
       // Make the API call with the appropriate token
       const response = await fetch(`${API_BASE_URL}/api/direct-webflow-assets`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'x-webflow-site': currentSiteId
+          // 'Authorization': `Bearer ${token}`,
+          // 'x-webflow-site': currentSiteId,
+          'Content-Type': 'application/json'
         }
       });
+      
+      console.log('Response - ', response);
       
       const responseData = await response.json();
       
@@ -6698,18 +6705,18 @@
       
       // Apply filters and search
       applyFiltersAndSearch();
-    } catch (error) {
-      console.error('Detailed Fetch Assets Error:', {
-        message: error.message,
-        stack: error.stack
-      });
+    // } catch (error) {
+      // console.error('Detailed Fetch Assets Error:', {
+      //   message: error.message,
+      //   stack: error.stack
+      // });
       
-      state.error = error.message || 'Failed to load assets. Please connect your Webflow account.';
-      state.needsAuthorization = true;
-    } finally {
-      state.isLoading = false;
-      renderApp(document.getElementById('root'));
-    }
+      // state.error = error.message || 'Failed to load assets. Please connect your Webflow account.';
+      // state.needsAuthorization = true;
+    // } finally {
+    //   state.isLoading = false;
+    //   renderApp(document.getElementById('root'));
+    // }
   }
   
   // Initialize the extension when the DOM is fully loaded
