@@ -1,7 +1,7 @@
 // Webflow extension entry point (bundle.js)
 (function() {
   // API base URL - change this to match your production environment
-  const API_BASE_URL = 'https://ebbb-2405-201-500c-4040-8006-6c7f-9f6f-1949.ngrok-free.app'; // Local development
+  const API_BASE_URL = 'http://localhost:3001'; // Local development
   // const client_id = process.env.CLIENT_ID;
   // console.log('Client ID:', client_id); 
 
