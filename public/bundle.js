@@ -1,7 +1,7 @@
 // Webflow extension entry point (bundle.js)
 (function() {
   // API base URL - change this to match your production environment
-  const API_BASE_URL = 'https://pixie-backend-bheg.onrender.com'; // Local development
+  const API_BASE_URL = 'https://pixie-backend-bheg.onrender.com/'; // Local development
   // const client_id = process.env.CLIENT_ID;
   // console.log('Client ID:', client_id); 
 
@@ -810,7 +810,7 @@
     
     try {
       // Call the API
-      const response = await fetch('https://pixie-backend-bheg.onrender.com/user/get-user-profile', {
+      const response = await fetch(`${API_BASE_URL}/user/get-user-profile`, {
         method: 'GET',
         headers: {
           'token': token,
@@ -4449,7 +4449,7 @@
             formData.append('file', resizedFile);
             
             // Create URL with site ID as query parameter
-            const uploadUrl = `https://pixie-backend-bheg.onrender.com/api/direct-upload-webflow-image?siteId=${currentSiteId}`;
+            const uploadUrl = `${API_BASE_URL}/api/direct-upload-webflow-image?siteId=${currentSiteId}`;
                      
             // Use AbortController to handle timeouts
             const controller = new AbortController();
@@ -5604,7 +5604,7 @@
       formData.append('file', croppedFile);
       
       // Create URL with site ID as query parameter
-      const uploadUrl = `https://pixie-backend-bheg.onrender.com/api/direct-upload-webflow-image?siteId=${currentSiteId}`;
+      const uploadUrl = `${API_BASE_URL}/api/direct-upload-webflow-image?siteId=${currentSiteId}`;
       
       // Make the request
       const uploadResponse = await fetch(uploadUrl, {
@@ -5723,7 +5723,7 @@
     
     // Use a proxy endpoint to avoid CORS issues
     const encodedUrl = encodeURIComponent(originalUrl);
-    return `https://pixie-backend-bheg.onrender.com/api/proxy-image?url=${encodedUrl}`;
+    return `${API_BASE_URL}/api/proxy-image?url=${encodedUrl}`;
   }
   
   function getFilenameFromUrl(url) {
@@ -6436,7 +6436,7 @@
       
       // Create a proxied URL to avoid CORS issues
       const encodedUrl = encodeURIComponent(asset.url);
-      const proxiedUrl = `https://pixie-backend-bheg.onrender.com/api/proxy-image?url=${encodedUrl}`;
+      const proxiedUrl = `${API_BASE_URL}/api/proxy-image?url=${encodedUrl}`;
       
       if (isSvg) {
         // For SVGs, fetch the content and parse it to extract dimensions
@@ -6663,9 +6663,9 @@
       // Make the API call with the appropriate token
       const response = await fetch(`${API_BASE_URL}/api/direct-webflow-assets`, {
         headers: {
-          // 'Authorization': `Bearer ${token}`,
-          // 'x-webflow-site': currentSiteId,
-          'Content-Type': 'application/json'
+          'Authorization': `Bearer ${token}`,
+          'x-webflow-site': currentSiteId,
+          // 'Content-Type': 'application/json'
         }
       });
       
