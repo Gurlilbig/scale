@@ -3195,7 +3195,7 @@
     // Return a promise so we can await the result
     return new Promise((resolve, reject) => {
       // Simplified OAuth URL without redirect_uri (keep your existing URL)
-      const oauthUrl = `https://webflow.com/oauth/authorize?response_type=code&client_id=6f8cb14d040524684edc96b0711c28949096cc16fc17d86437beac9825e40d00&scope=authorized_user%3Aread%20assets%3Aread%20assets%3Awrite%20cms%3Aread%20cms%3Awrite`;
+      const oauthUrl = `https://webflow.com/oauth/authorize?response_type=code&client_id=6f8cb14d040524684edc96b0711c28949096cc16fc17d86437beac9825e40d00&scope=authorized_user%3Aread%20assets%3Aread%20assets%3Awrite%20sites%3Aread%20cms%3Aread%20cms%3Awrite`;
         
       // Open the popup
       const oauthWindow = window.open(
