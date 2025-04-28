@@ -2,8 +2,6 @@
 (function() {
   // API base URL - change this to match your production environment
   const API_BASE_URL = 'https://pixie-backend-bheg.onrender.com'; // Local development
-  // const client_id = process.env.CLIENT_ID;
-  // console.log('Client ID:', client_id); 
 
   // State management for the application
   const state = {
@@ -3195,7 +3193,7 @@
     // Return a promise so we can await the result
     return new Promise((resolve, reject) => {
       // Simplified OAuth URL without redirect_uri (keep your existing URL)
-      const oauthUrl = `https://webflow.com/oauth/authorize?response_type=code&client_id=6f8cb14d040524684edc96b0711c28949096cc16fc17d86437beac9825e40d00&scope=authorized_user%3Aread%20assets%3Aread%20assets%3Awrite%20sites%3Aread%20cms%3Aread%20cms%3Awrite`;
+      const oauthUrl = `https://webflow.com/oauth/authorize?response_type=code&client_id=d403eff016358ce6fa71358de13b7cee8955c4b7497aade554ac9c9a3b17fbe3&scope=authorized_user%3Aread%20assets%3Aread%20assets%3Awrite%20sites%3Aread%20cms%3Aread%20cms%3Awrite`;
         
       // Open the popup
       const oauthWindow = window.open(
@@ -3234,7 +3232,7 @@
               },
               body: JSON.stringify({
                 authCode: authCode,
-                clientId: '6f8cb14d040524684edc96b0711c28949096cc16fc17d86437beac9825e40d00'
+                clientId: 'd403eff016358ce6fa71358de13b7cee8955c4b7497aade554ac9c9a3b17fbe3'
               })
             });
             
@@ -3292,7 +3290,7 @@
                     },
                     body: JSON.stringify({
                       secret: result.userSecretKey,
-                      clientId: '6f8cb14d040524684edc96b0711c28949096cc16fc17d86437beac9825e40d00'
+                      clientId: 'd403eff016358ce6fa71358de13b7cee8955c4b7497aade554ac9c9a3b17fbe3'
                     })
                   });
 
@@ -5059,16 +5057,16 @@
             cropContainer.insertBefore(svgContainer, cropOverlay);
             
             // Add a debug overlay to visualize the actual dimensions (can be removed in production)
-            const debugBox = document.createElement('div');
-            debugBox.style.position = 'absolute';
-            debugBox.style.border = '1px dashed red';
-            debugBox.style.width = `${displayWidth}px`;
-            debugBox.style.height = `${displayHeight}px`;
-            debugBox.style.top = '0';
-            debugBox.style.left = '0';
-            debugBox.style.zIndex = '1';
-            debugBox.style.pointerEvents = 'none'; // Make sure it doesn't interfere with interaction
-            svgContainer.appendChild(debugBox);
+            // const debugBox = document.createElement('div');
+            // debugBox.style.position = 'absolute';
+            // debugBox.style.border = '1px dashed red';
+            // debugBox.style.width = `${displayWidth}px`;
+            // debugBox.style.height = `${displayHeight}px`;
+            // debugBox.style.top = '0';
+            // debugBox.style.left = '0';
+            // debugBox.style.zIndex = '1';
+            // debugBox.style.pointerEvents = 'none'; // Make sure it doesn't interfere with interaction
+            // svgContainer.appendChild(debugBox);
             
             // Update crop container dimensions with the scaled values
             cropContainer.style.width = `${displayWidth}px`;
