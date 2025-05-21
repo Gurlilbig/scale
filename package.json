@@ -39,7 +39,7 @@
     "sharp": "^0.33.5",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7",
-    "webflow-api": "^3.1.0"
+    "webflow-api": "^3.1.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.26.4",

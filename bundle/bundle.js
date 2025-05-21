@@ -2,8 +2,6 @@
 (function() {
   // API base URL - change this to match your production environment
   const API_BASE_URL = 'http://localhost:3001'; // Local development
-  // const client_id = process.env.CLIENT_ID;
-  // console.log('Client ID:', client_id); 
 
   // State management for the application
   const state = {
@@ -373,13 +371,40 @@
     state.currentView = 'assets-browser';
     
     // Try to get tokens from localStorage first
-    const webflowToken = localStorage.getItem('webflowToken');
-    const userToken = localStorage.getItem('token');
+    // const webflowToken = localStorage.getItem('webflowToken');
+    // const userToken = localStorage.getItem('token');
     
-    if (webflowToken) {
-      state.webflowToken = webflowToken;
-      console.log('Loaded Webflow token from localStorage');
+    // Check if we have a token2 in localStorage
+    const jwtToken = localStorage.getItem('token2');
+    // const webflowToken = localStorage.getItem('webflowToken');
+    
+    if (jwtToken) {
+      console.log('Found JWT token in localStorage');
+      
+      // If we have a fresh token, show a success message
+      // We detect this by checking the token's age
+      const tokenTimestamp = localStorage.getItem('token2_timestamp');
+      if (tokenTimestamp) {
+        const tokenAge = Date.now() - parseInt(tokenTimestamp);
+        
+        // If token is less than 5 seconds old, show success message
+        if (tokenAge < 5000) {
+          // Set a small timeout to let the UI render first
+          setTimeout(() => {
+            showPopupNotification({
+              type: 'success',
+              title: 'Authentication Successful',
+              message: 'Your Webflow account has been connected successfully.'
+            });
+          }, 500);
+        }
+      }
     }
+
+    // if (webflowToken) {
+    //   state.webflowToken = webflowToken;
+    //   console.log('Loaded Webflow token from localStorage');
+    // }
     
     // Render the initial UI
     renderApp(root);
@@ -507,51 +532,51 @@
   }
 
   // Enhanced login function to handle site connection
-  async function loginUser(email, password, siteId, webflowToken) {
-    try {
-      // First, perform the standard login
-      const result = await callApi('/user/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password })
-      });
+  // async function loginUser(email, password, siteId, webflowToken) {
+  //   try {
+  //     // First, perform the standard login
+  //     const result = await callApi('/user/login', {
+  //       method: 'POST',
+  //       body: JSON.stringify({ email, password })
+  //     });
       
-      if (result.success && result.data.token) {
-        // Store the user token
-        localStorage.setItem('token', result.data.token);
+  //     if (result.success && result.data.token) {
+  //       // Store the user token
+  //       localStorage.setItem('token', result.data.token);
         
-        // If we have a site ID and webflow token, store the site connection
-        if (siteId && webflowToken) {
-          // Call the API to add this site to the user's record
-          const siteResult = await callApi('/user/add-site-connection', {
-            method: 'POST',
-            body: JSON.stringify({ 
-              siteId, 
-              accessToken: webflowToken,
-              siteName: 'Webflow Site' // You can get the actual name if available
-            })
-          });
+  //       // If we have a site ID and webflow token, store the site connection
+  //       if (siteId && webflowToken) {
+  //         // Call the API to add this site to the user's record
+  //         const siteResult = await callApi('/user/add-site-connection', {
+  //           method: 'POST',
+  //           body: JSON.stringify({ 
+  //             siteId, 
+  //             accessToken: webflowToken,
+  //             siteName: 'Webflow Site' // You can get the actual name if available
+  //           })
+  //         });
           
-          if (!siteResult.success) {
-            console.error('Failed to add site connection:', siteResult.error);
-            // Don't fail the login, but log the error
-          }
-        }
+  //         if (!siteResult.success) {
+  //           console.error('Failed to add site connection:', siteResult.error);
+  //           // Don't fail the login, but log the error
+  //         }
+  //       }
         
-        return { success: true };
-      }
+  //       return { success: true };
+  //     }
       
-      return { 
-        success: false, 
-        error: result.error || 'Login failed' 
-      };
-    } catch (error) {
-      console.error('Login process error:', error);
-      return { 
-        success: false, 
-        error: 'Unexpected error during login' 
-      };
-    }
-  }
+  //     return { 
+  //       success: false, 
+  //       error: result.error || 'Login failed' 
+  //     };
+  //   } catch (error) {
+  //     console.error('Login process error:', error);
+  //     return { 
+  //       success: false, 
+  //       error: 'Unexpected error during login' 
+  //     };
+  //   }
+  // }
 
   // Enhanced signup function to handle site connection
   async function signupUser(username, email, password, siteId, webflowToken) {
@@ -856,64 +881,64 @@
   }
 
   // Modify setupLoginForm to pass site info
-  function setupLoginForm(container) {
-    const form = container.querySelector('#login-form');
-    if (!form) return;
+  // function setupLoginForm(container) {
+  //   const form = container.querySelector('#login-form');
+  //   if (!form) return;
     
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
+  //   form.addEventListener('submit', async (e) => {
+  //     e.preventDefault();
       
-      const submitButton = form.querySelector('#submit-login');
-      submitButton.disabled = true;
-      submitButton.textContent = 'Logging in...';
+  //     const submitButton = form.querySelector('#submit-login');
+  //     submitButton.disabled = true;
+  //     submitButton.textContent = 'Logging in...';
       
-      // Get form values
-      const email = form.querySelector('#email').value;
-      const password = form.querySelector('#password').value;
+  //     // Get form values
+  //     const email = form.querySelector('#email').value;
+  //     const password = form.querySelector('#password').value;
       
-      // Get current site ID and token if available
-      const currentSiteId = await getCurrentWebflowSiteId();
-      const webflowToken = localStorage.getItem('webflowToken');
+  //     // Get current site ID and token if available
+  //     const currentSiteId = await getCurrentWebflowSiteId();
+  //     const webflowToken = localStorage.getItem('webflowToken');
       
-      try {
-        // Use the enhanced loginUser helper
-        const result = await loginUser(email, password, currentSiteId, webflowToken);
+  //     try {
+  //       // Use the enhanced loginUser helper
+  //       const result = await loginUser(email, password, currentSiteId, webflowToken);
         
-        if (result.success) {
-          // Check the user's plan after login
-          const planResult = await checkUserPlan();
+  //       if (result.success) {
+  //         // Check the user's plan after login
+  //         const planResult = await checkUserPlan();
           
-          // Close the popup
-          const popup = document.querySelector('.auth-popup-overlay');
-          if (popup) {
-            document.body.removeChild(popup);
-          }
+  //         // Close the popup
+  //         const popup = document.querySelector('.auth-popup-overlay');
+  //         if (popup) {
+  //           document.body.removeChild(popup);
+  //         }
           
-          if (planResult.success && planResult.hasPlan) {
-            // User has a plan, redirect to home page
-            redirectToHomePage();
-          } else {
-            // User doesn't have a plan or check failed, redirect to pricing page
-            redirectToPricingPage();
-          }
-        } else {
-          // Show error message
-          showError(result.error || 'Failed to log in. Please check your credentials.');
+  //         if (planResult.success && planResult.hasPlan) {
+  //           // User has a plan, redirect to home page
+  //           redirectToHomePage();
+  //         } else {
+  //           // User doesn't have a plan or check failed, redirect to pricing page
+  //           redirectToPricingPage();
+  //         }
+  //       } else {
+  //         // Show error message
+  //         showError(result.error || 'Failed to log in. Please check your credentials.');
           
-          // Re-enable submit button
-          submitButton.disabled = false;
-          submitButton.textContent = 'Log In';
-        }
-      } catch (error) {
-        console.error('Login process error:', error);
-        showError('An unexpected error occurred. Please try again later.');
+  //         // Re-enable submit button
+  //         submitButton.disabled = false;
+  //         submitButton.textContent = 'Log In';
+  //       }
+  //     } catch (error) {
+  //       console.error('Login process error:', error);
+  //       showError('An unexpected error occurred. Please try again later.');
         
-        // Re-enable submit button
-        submitButton.disabled = false;
-        submitButton.textContent = 'Log In';
-      }
-    });
-  }
+  //       // Re-enable submit button
+  //       submitButton.disabled = false;
+  //       submitButton.textContent = 'Log In';
+  //     }
+  //   });
+  // }
 
   // Updated showLoginForm function
   function showLoginForm(container) {
@@ -1219,58 +1244,58 @@
   }
 
   // Updated showSignupForm function
-  function showSignupForm(container) {
-    const authContent = container.querySelector('.auth-popup-content');
+  // function showSignupForm(container) {
+  //   const authContent = container.querySelector('.auth-popup-content');
     
-    authContent.innerHTML = `
-      <h2 style="margin-top: 0; font-size: 1.5rem; font-weight: 600;">Sign Up for Pixie</h2>
-      <p>Create your account to use our compression feature.</p>
+  //   authContent.innerHTML = `
+  //     <h2 style="margin-top: 0; font-size: 1.5rem; font-weight: 600;">Sign Up for Pixie</h2>
+  //     <p>Create your account to use our compression feature.</p>
       
-      <form id="signup-form" style="margin-top: 1.5rem;">
-        <div style="margin-bottom: 1rem;">
-          <label for="username" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Username</label>
-          <input type="text" id="username" name="username" class="input" required style="width: 90%;">
-        </div>
+  //     <form id="signup-form" style="margin-top: 1.5rem;">
+  //       <div style="margin-bottom: 1rem;">
+  //         <label for="username" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Username</label>
+  //         <input type="text" id="username" name="username" class="input" required style="width: 90%;">
+  //       </div>
         
-        <div style="margin-bottom: 1rem;">
-          <label for="email" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Email</label>
-          <input type="email" id="email" name="email" class="input" required style="width: 90%;">
-        </div>
+  //       <div style="margin-bottom: 1rem;">
+  //         <label for="email" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Email</label>
+  //         <input type="email" id="email" name="email" class="input" required style="width: 90%;">
+  //       </div>
         
-        <div style="margin-bottom: 1.5rem;">
-          <label for="password" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Password</label>
-          <input type="password" id="password" name="password" class="input" required style="width: 90%;">
-          <p style="margin-top: 0.5rem; font-size: 0.875rem; color: #6b7280;">Password must be at least 6 characters long</p>
-        </div>
+  //       <div style="margin-bottom: 1.5rem;">
+  //         <label for="password" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Password</label>
+  //         <input type="password" id="password" name="password" class="input" required style="width: 90%;">
+  //         <p style="margin-top: 0.5rem; font-size: 0.875rem; color: #6b7280;">Password must be at least 6 characters long</p>
+  //       </div>
         
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <button type="submit" id="submit-signup" class="button button-primary">
-            Sign Up
-          </button>
-          <button type="button" id="back-to-auth-options" class="button button-outline">
-            Back
-          </button>
-        </div>
-      </form>
+  //       <div style="display: flex; justify-content: space-between; align-items: center;">
+  //         <button type="submit" id="submit-signup" class="button button-primary">
+  //           Sign Up
+  //         </button>
+  //         <button type="button" id="back-to-auth-options" class="button button-outline">
+  //           Back
+  //         </button>
+  //       </div>
+  //     </form>
       
-      <p style="margin-top: 1.5rem; text-align: center; font-size: 0.875rem;">
-        Already have an account? <a href="#" id="show-login" style="color: #ffab69; text-decoration: underline; font-weight: 500;">Log In</a>
-      </p>
-    `;
+  //     <p style="margin-top: 1.5rem; text-align: center; font-size: 0.875rem;">
+  //       Already have an account? <a href="#" id="show-login" style="color: #ffab69; text-decoration: underline; font-weight: 500;">Log In</a>
+  //     </p>
+  //   `;
     
-    // Add event listeners
-    document.getElementById('back-to-auth-options').addEventListener('click', () => {
-      showCompressionAuthPopup();
-    });
+  //   // Add event listeners
+  //   document.getElementById('back-to-auth-options').addEventListener('click', () => {
+  //     showCompressionAuthPopup();
+  //   });
     
-    document.getElementById('show-login').addEventListener('click', (e) => {
-      e.preventDefault();
-      showLoginForm(container);
-    });
+  //   document.getElementById('show-login').addEventListener('click', (e) => {
+  //     e.preventDefault();
+  //     showLoginForm(container);
+  //   });
     
-    // Use our improved signup form handler
-    setupSignupForm(container);
-  }
+  //   // Use our improved signup form handler
+  //   setupSignupForm(container);
+  // }
 
   function applyGlobalStyles() {
     if (document.getElementById('webflow-extension-styles')) return;
@@ -2303,9 +2328,6 @@
     
     // Then render the main content based on view
     switch (state.currentView) {
-      case 'home':
-        renderHomeView(mainElement);
-        break;
       case 'assets-browser':
         renderAssetsBrowserView(mainElement);
         break;
@@ -2567,19 +2589,19 @@
     }
     
     // Clear all tokens
-    localStorage.removeItem('token');
-    localStorage.removeItem('webflowToken');
-    localStorage.removeItem('webflowTokenTimestamp');
-    localStorage.removeItem('userEmail');
+    localStorage.removeItem('token2');
+    // localStorage.removeItem('webflowToken');
+    // localStorage.removeItem('webflowTokenTimestamp');
+    // localStorage.removeItem('userEmail');
     
-    // Also clear site-specific tokens
-    getCurrentWebflowSiteId().then(currentSiteId => {
-      if (currentSiteId) {
-        localStorage.removeItem(`webflow_token_${currentSiteId}`);
-      }
-    }).catch(error => {
-      console.error('Error clearing site-specific token:', error);
-    });
+    // // Also clear site-specific tokens
+    // getCurrentWebflowSiteId().then(currentSiteId => {
+    //   if (currentSiteId) {
+    //     // localStorage.removeItem(`webflow_token_${currentSiteId}`);
+    //   }
+    // }).catch(error => {
+    //   // console.error('Error clearing site-specific token:', error);
+    // });
     
     // Reset ALL relevant state
     state.userInfo = null;
@@ -2612,14 +2634,12 @@
     header.style.borderRadius = '10px';
   
     // Check for tokens
-    const hasGeneralToken = localStorage.getItem('webflowToken') !== null;
-    const hasUserToken = localStorage.getItem('token') !== null;
-    const hasSiteSpecificToken = localStorage.getItem(`webflow_token_${currentSiteId}`) !== null;
+    const hasSiteSpecificToken = localStorage.getItem(`token2`) !== null;
     
     // Set token in state if site-specific token exists
-    if (hasSiteSpecificToken) {
-      state.webflowToken = localStorage.getItem(`webflow_token_${currentSiteId}`);
-    }
+    // if (hasSiteSpecificToken) {
+    //   state.webflowToken = localStorage.getItem(`token2`);
+    // }
     
     // Determine if we should show login or logout button
     const showLoginButton = !hasSiteSpecificToken;
@@ -2673,7 +2693,8 @@
           // Use the updated openOAuthWindow function that returns a promise
           openOAuthWindow()
             .then(result => {
-              console.log('Authentication completed successfully.');
+              console.log('Authentication completed successfully. Starting auto reloading.');
+              pollForJwtToken();
             })
             .catch(error => {
               console.error('Authentication failed.');
@@ -2726,147 +2747,147 @@
     }
   }
 
-  // 3. Update the renderHomeView function to adapt to login status
-  function renderHomeView(container) {
-    const main = document.createElement('main');
-    main.className = 'flex-grow flex items-center justify-center bg-amber-50 bg-white mt-6';
-    main.style.border = '2px solid black';
-    main.style.borderRadius = '10px';
+  // // 3. Update the renderHomeView function to adapt to login status
+  // function renderHomeView(container) {
+  //   const main = document.createElement('main');
+  //   main.className = 'flex-grow flex items-center justify-center bg-amber-50 bg-white mt-6';
+  //   main.style.border = '2px solid black';
+  //   main.style.borderRadius = '10px';
 
-    const hasToken = !!(localStorage.getItem('token') && localStorage.getItem('webflowToken'));
+  //   const hasToken = !!(localStorage.getItem('token2'));
 
-    // Regular content
-    main.innerHTML = `
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 class="text-4xl font-bold text-center text-gray-900 mb-8">
-          What would you like to do?
-        </h1>
-        <div class="grid grid-cols-2 gap-8 max-w-4xl mx-auto">
-          <div class="feature-card" id="resize-card">
-            <div class="icon-container blue-accent">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="3" y1="9" x2="21" y2="9"></line>
-                <line x1="9" y1="21" x2="9" y2="9"></line>
-              </svg>
-            </div>
-            <h3 class="text-lg font-semibold mb-2">Resize</h3>
-            <p class="text-gray-600 mb-4">Resize specific images from your Webflow assets while maintaining quality.</p>
-            <button class="button button-primary" id="resize-button">
-              Get Started
-            </button>
-          </div>
+  //   // Regular content
+  //   main.innerHTML = `
+  //     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  //       <h1 class="text-4xl font-bold text-center text-gray-900 mb-8">
+  //         What would you like to do?
+  //       </h1>
+  //       <div class="grid grid-cols-2 gap-8 max-w-4xl mx-auto">
+  //         <div class="feature-card" id="resize-card">
+  //           <div class="icon-container blue-accent">
+  //             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  //               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+  //               <line x1="3" y1="9" x2="21" y2="9"></line>
+  //               <line x1="9" y1="21" x2="9" y2="9"></line>
+  //             </svg>
+  //           </div>
+  //           <h3 class="text-lg font-semibold mb-2">Resize</h3>
+  //           <p class="text-gray-600 mb-4">Resize specific images from your Webflow assets while maintaining quality.</p>
+  //           <button class="button button-primary" id="resize-button">
+  //             Get Started
+  //           </button>
+  //         </div>
           
-          <div class="feature-card" id="crop-card">
-            <div class="icon-container green-accent">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M6.13 1L6 16a2 2 0 0 0 2 2h15"></path>
-                <path d="M1 6.13L16 6a2 2 0 0 1 2 2v15"></path>
-              </svg>
-            </div>
-            <h3 class="text-lg font-semibold mb-2">Crop</h3>
-            <p class="text-gray-600 mb-4">Precisely crop specific images from your Webflow assets with our intuitive cropping tool.</p>
-            <button class="button button-primary" id="crop-button">
-              Get Started
-            </button>
-          </div>
-        </div>
+  //         <div class="feature-card" id="crop-card">
+  //           <div class="icon-container green-accent">
+  //             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  //               <path d="M6.13 1L6 16a2 2 0 0 0 2 2h15"></path>
+  //               <path d="M1 6.13L16 6a2 2 0 0 1 2 2v15"></path>
+  //             </svg>
+  //           </div>
+  //           <h3 class="text-lg font-semibold mb-2">Crop</h3>
+  //           <p class="text-gray-600 mb-4">Precisely crop specific images from your Webflow assets with our intuitive cropping tool.</p>
+  //           <button class="button button-primary" id="crop-button">
+  //             Get Started
+  //           </button>
+  //         </div>
+  //       </div>
         
-        ${!hasToken ? `
-          <div class="text-center mt-8">
-            <p class="text-gray-600 mb-4">To manage your Webflow site's assets, click 'Login/Signup' to get started.</p>
-          </div>
-        ` : ''}
-      </div>
-    `;
+  //       ${!hasToken ? `
+  //         <div class="text-center mt-8">
+  //           <p class="text-gray-600 mb-4">To manage your Webflow site's assets, click 'Login/Signup' to get started.</p>
+  //         </div>
+  //       ` : ''}
+  //     </div>
+  //   `;
     
-    container.appendChild(main);
+  //   container.appendChild(main);
     
-    // Add event listeners
-    setTimeout(() => {
-      // Add login button in the main content area when needed
-      // const loginWebflowHomeButton = document.getElementById('login-webflow-home-button');
-      // if (loginWebflowHomeButton) {
-      //   loginWebflowHomeButton.addEventListener('click', (e) => {
-      //     e.preventDefault();
-      //     openOAuthWindow();
-      //   });
-      // }
+  //   // Add event listeners
+  //   setTimeout(() => {
+  //     // Add login button in the main content area when needed
+  //     // const loginWebflowHomeButton = document.getElementById('login-webflow-home-button');
+  //     // if (loginWebflowHomeButton) {
+  //     //   loginWebflowHomeButton.addEventListener('click', (e) => {
+  //     //     e.preventDefault();
+  //     //     openOAuthWindow();
+  //     //   });
+  //     // }
       
-      // Regular app buttons
-      document.getElementById('resize-button')?.addEventListener('click', () => {
-        // Check if user is logged in before allowing to proceed
-        if (!localStorage.getItem('token') || !localStorage.getItem('webflowToken')) {
-          showPopupNotification({
-            type: 'info',
-            title: 'Login Required',
-            message: 'Please login with your Webflow account to use this feature.'
-          });
-          return;
-        }
+  //     // Regular app buttons
+  //     document.getElementById('resize-button')?.addEventListener('click', () => {
+  //       // Check if user is logged in before allowing to proceed
+  //       if (!localStorage.getItem('token2')) {
+  //         showPopupNotification({
+  //           type: 'info',
+  //           title: 'Login Required',
+  //           message: 'Please login with your Webflow account to use this feature.'
+  //         });
+  //         return;
+  //       }
         
-        state.resizeMode = 'specific-assets';
-        state.cropMode = null;
-        state.currentView = 'assets-browser';
-        renderApp(document.getElementById('root'));
-      });
+  //       state.resizeMode = 'specific-assets';
+  //       state.cropMode = null;
+  //       state.currentView = 'assets-browser';
+  //       renderApp(document.getElementById('root'));
+  //     });
       
-      document.getElementById('crop-button')?.addEventListener('click', () => {
-        // Check if user is logged in before allowing to proceed
-        if (!localStorage.getItem('token') || !localStorage.getItem('webflowToken')) {
-          showPopupNotification({
-            type: 'info',
-            title: 'Login Required',
-            message: 'Please login with your Webflow account to use this feature.'
-          });
-          return;
-        }
+  //     document.getElementById('crop-button')?.addEventListener('click', () => {
+  //       // Check if user is logged in before allowing to proceed
+  //       if (!localStorage.getItem('token2')) {
+  //         showPopupNotification({
+  //           type: 'info',
+  //           title: 'Login Required',
+  //           message: 'Please login with your Webflow account to use this feature.'
+  //         });
+  //         return;
+  //       }
         
-        state.cropMode = 'specific-assets';
-        state.resizeMode = null;
-        state.currentView = 'assets-browser';
-        renderApp(document.getElementById('root'));
-      });
-    }, 0);
-  }
+  //       state.cropMode = 'specific-assets';
+  //       state.resizeMode = null;
+  //       state.currentView = 'assets-browser';
+  //       renderApp(document.getElementById('root'));
+  //     });
+  //   }, 0);
+  // }
   
   // Update the storeWebflowToken function to store site-specific tokens
-  function storeWebflowToken(token, siteId) {
-    if (!token || !siteId) {
-      console.error('Cannot store token: Missing token or siteId');
-      return false;
-    }
+  // function storeWebflowToken(token, siteId) {
+  //   if (!token || !siteId) {
+  //     console.error('Cannot store token: Missing token or siteId');
+  //     return false;
+  //   }
     
-    try {
-      // Store token with site-specific key
-      const siteSpecificKey = `webflow_token_${siteId}`;
-      localStorage.setItem(siteSpecificKey, token);
+  //   try {
+  //     // Store token with site-specific key
+  //     const siteSpecificKey = `webflow_token_${siteId}`;
+  //     localStorage.setItem(siteSpecificKey, token);
       
-      // Also store in the generic key for backward compatibility
-      localStorage.setItem('webflowToken', token);
+  //     // Also store in the generic key for backward compatibility
+  //     localStorage.setItem('webflowToken', token);
       
-      // Add a timestamp
-      localStorage.setItem('webflowTokenTimestamp', new Date().getTime().toString());
+  //     // Add a timestamp
+  //     localStorage.setItem('webflowTokenTimestamp', new Date().getTime().toString());
       
-      // Update state
-      state.webflowToken = token;
-      return true;
-    } catch (error) {
-      console.error('Error storing token:', error);
-      return false;
-    }
-  }
+  //     // Update state
+  //     state.webflowToken = token;
+  //     return true;
+  //   } catch (error) {
+  //     console.error('Error storing token:', error);
+  //     return false;
+  //   }
+  // }
 
   // Function to retrieve the token from localStorage
-  function retrieveWebflowToken() {
-    const token = localStorage.getItem('webflowToken');
-    if (token) {
-      state.webflowToken = token;
-      console.log('Webflow token retrieved from localStorage');
-      return token;
-    }
-    return null;
-  }
+  // function retrieveWebflowToken() {
+  //   const token = localStorage.getItem('webflowToken');
+  //   if (token) {
+  //     state.webflowToken = token;
+  //     console.log('Webflow token retrieved from localStorage');
+  //     return token;
+  //   }
+  //   return null;
+  // }
 
   // Update the logout function to handle site-specific tokens
   // function logoutWebflow() {
@@ -3194,166 +3215,415 @@
   function openOAuthWindow() {
     // Return a promise so we can await the result
     return new Promise((resolve, reject) => {
-      // Simplified OAuth URL without redirect_uri (keep your existing URL)
-      const oauthUrl = `https://webflow.com/oauth/authorize?response_type=code&client_id=d403eff016358ce6fa71358de13b7cee8955c4b7497aade554ac9c9a3b17fbe3&scope=authorized_user%3Aread%20assets%3Aread%20assets%3Awrite%20sites%3Aread%20cms%3Aread%20cms%3Awrite`;
-        
-      // Open the popup
-      const oauthWindow = window.open(
-        oauthUrl,
-        'WebflowOAuth',
-        `width=800,height=600,top=5,left=${window.screen.width - 820},menubar=no,toolbar=no,location=no,resizable=yes,scrollbars=yes,status=no`
-      );
-        
-      // Handle message event for the auth code
-      // let eventTracker = false;
-      // console.log("Event tracker outside- ", state.eventTracker);
-      window.addEventListener('message', async function messageHandler(event) {
-        // console.log("event tracker inside 1- ", state.eventTracker);
-        // Clean up the event listener
-        window.removeEventListener('message', messageHandler);
-            
-        if (event.data && event.data.type === 'WEBFLOW_AUTH_SUCCESS' && state.eventTracker === false) {
-          state.eventTracker = true;
-          // console.log("event tracker inside 2- ", state.eventTracker);
+      // Instead of manually constFructing the URL, use an API endpoint to get the authorize URL
+      // This API endpoint will use WebflowClient.authorizeURL to construct the URL with state parameter
+      const apiEndpoint = `${API_BASE_URL}/api/webflow-auth-window/authorize?source=indesigner`;
+      
+      // First fetch the authorization URL from our backend
+      fetch(apiEndpoint)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Failed to get authorization URL: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          // Get the authorization URL from the response
+          const oauthUrl = data.authorizeUrl;
           
-          // Get the auth code
-          const authCode = event.data.code;
-            
-          try {
-            // Get the current site ID
-            const currentSiteId = await getCurrentWebflowSiteId();
-            if (!currentSiteId) {
-              throw new Error('Could not determine current site ID');
-            }
+          if (!oauthUrl) {
+            throw new Error('No authorization URL returned from server');
+          }
+          
+          // Store in localStorage that we're using InDesigner mode
+          localStorage.setItem('oauth_source', 'indesigner');
+          
+          // Open in a new tab 
+          const oauthWindow = window.open(
+            oauthUrl,
+            '_blank'
+          );
+          
+          // // Handle message event for the auth code
+          // window.addEventListener('message', async function messageHandler(event) {
+          //   // Clean up the event listener
+          //   window.removeEventListener('message', messageHandler);
                 
-            // Make the API call to exchange code for token
-            const response = await fetch(`${API_BASE_URL}/user/verify-user-auth`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                authCode: authCode,
-                clientId: 'd403eff016358ce6fa71358de13b7cee8955c4b7497aade554ac9c9a3b17fbe3'
-              })
-            });
-            
-            if (!response.ok) {
-              const errorText = await response.text();
-              throw new Error(`Server error: ${response.status} - ${errorText}`);
+          //   if (event.data && event.data.type === 'WEBFLOW_AUTH_SUCCESS' && state.eventTracker === false) {
+          //     state.eventTracker = true;
+              
+          //     // Get the auth code
+          //     const authCode = event.data.code;
+                
+          //     try {
+          //       // Get the current site ID
+          //       const currentSiteId = await getCurrentWebflowSiteId();
+          //       if (!currentSiteId) {
+          //         throw new Error('Could not determine current site ID');
+          //       }
+                    
+          //       // Make the API call to exchange code for token
+          //       const response = await fetch(`${API_BASE_URL}/user/verify-user-auth`, {
+          //         method: 'POST',
+          //         headers: {
+          //           'Content-Type': 'application/json'
+          //         },
+          //         body: JSON.stringify({
+          //           authCode: authCode,
+          //           clientId: 'd403eff016358ce6fa71358de13b7cee8955c4b7497aade554ac9c9a3b17fbe3'
+          //         })
+          //       });
+                
+          //       if (!response.ok) {
+          //         const errorText = await response.text();
+          //         throw new Error(`Server error: ${response.status} - ${errorText}`);
+          //       }
+                
+          //       const result = await response.json();
+                    
+          //       if (result.success) {
+          //         // Store the webflow token with site-specific key
+          //         storeWebflowToken(result.userSecretKey, currentSiteId);
+                  
+          //         // Store user authentication token
+          //         localStorage.setItem('token', result.token);
+                  
+          //         // Also store user email if available
+          //         if (result.email) {
+          //           localStorage.setItem('userEmail', result.email);
+          //         }
+                  
+          //         // Set user logged in state
+          //         state.webflowToken = result.userSecretKey;
+          //         state.userInfo = {
+          //           email: result.email,
+          //           newUser: result.newUser
+          //         };
+                  
+          //         // Clear the needs authorization flag
+          //         state.needsAuthorization = false;
+                  
+          //         // Show success notification
+          //         showPopupNotification({
+          //           type: 'success', 
+          //           title: 'Connected Successfully',
+          //           message: 'Your Webflow account has been connected for this site.'
+          //         });
+                    
+          //         // Immediately update the UI to reflect the new state
+          //         renderApp(document.getElementById('root'));
+                    
+          //         // Fetch assets if we're in the assets browser view
+          //         if (state.currentView === 'assets-browser') {
+          //           fetchWebflowAssets();
+          //         }
+              
+          //         if (result.token) {
+          //           try {
+          //             const verifyResponse = await fetch(`${API_BASE_URL}/user/verify-auth-code-webflow`, {
+          //               method: 'POST',
+          //               headers: {
+          //                 'Content-Type': 'application/json',
+          //                 token: result.token
+          //               },
+          //               body: JSON.stringify({
+          //                 secret: result.userSecretKey,
+          //                 clientId: 'd403eff016358ce6fa71358de13b7cee8955c4b7497aade554ac9c9a3b17fbe3'
+          //               })
+          //             });
+  
+          //             const verifyResult = await verifyResponse.json();
+                      
+          //             if (verifyResult.success) {
+          //               console.log('Successfully added site information to user account.');
+          //               // You can optionally show another notification or update the UI here
+          //             } else {
+          //               console.error('Failed to add site information.');
+          //             }
+          //           } catch (verifyError) {
+          //             console.error('Error verifying auth code for site info.');
+          //           }
+          //         }
+                  
+          //         // Resolve the promise with the result
+          //         resolve(result);
+          //       } else {
+          //         throw new Error(result.message || result.details || 'Failed to connect Webflow account');
+          //       }
+          //     } catch (error) {
+          //       console.error('Token exchange error:', error);
+          //       showPopupNotification({
+          //         type: 'error',
+          //         title: 'Authorization Failed',
+          //         message: 'Could not complete Webflow authorization. Please try again.'
+          //       });
+          //       reject(error);
+          //     }
+          //   }
+          // });
+  
+          // Add a message listener to handle the INDESIGNER_AUTH_COMPLETE message
+          window.addEventListener('message', async function inDesignerMessageHandler(event) {
+            if (event.data && event.data.type === 'INDESIGNER_AUTH_COMPLETE') {
+              // Clean up this event listener
+              window.removeEventListener('message', inDesignerMessageHandler);
+              
+              console.log('Received auth completion message from InDesigner OAuth redirect');
+              
+              // Start polling for the token in the database
+              startTokenPolling()
+                .then(result => {
+                  resolve({ success: true });
+                })
+                .catch(error => {
+                  reject(error);
+                });
+            }
+          });
+  
+          // Handle case where window is closed without completing auth
+          // const checkClosed = setInterval(() => {
+          //   if (oauthWindow && oauthWindow.closed) {
+          //     clearInterval(checkClosed);
+          //     console.log('OAuth window was closed without completion');
+          //     reject(new Error('Authorization window was closed'));
+          //   }
+          // }, 500);
+  
+          // Focus the window to bring it to the front
+          if (oauthWindow) {
+            oauthWindow.focus();
+          } else {
+            reject(new Error('Failed to open OAuth window'));
+          }
+        })
+        .catch(error => {
+          console.error('Error initiating OAuth flow:', error);
+          showPopupNotification({
+            type: 'error',
+            title: 'Authorization Failed',
+            message: 'Could not initiate Webflow authorization. Please try again.'
+          });
+          reject(error);
+        });
+    });
+  }
+
+  // Function to start polling for JWT token in localStorage
+  function pollForJwtToken() {
+    console.log("Starting JWT token polling...");
+    
+    // Store the current token value to detect changes
+    const initialToken = localStorage.getItem('token2');
+    
+    // Set a maximum polling duration (30 seconds)
+    const maxPollingTime = 30000; 
+    const startTime = Date.now();
+    
+    // Start the polling interval
+    const pollingInterval = setInterval(() => {
+      // Check if we've exceeded the maximum polling time
+      if (Date.now() - startTime > maxPollingTime) {
+        console.log("JWT token polling timed out after 30 seconds");
+        clearInterval(pollingInterval);
+        return;
+      }
+      
+      // Check if the token exists and has changed
+      const currentToken = localStorage.getItem('token2');
+      
+      if (currentToken && currentToken !== initialToken) {
+        console.log("JWT token detected in localStorage! Triggering auto-reload...");
+        clearInterval(pollingInterval);
+        
+        // Add a small delay to ensure all data is properly saved
+        setTimeout(() => {
+          // Reload the page
+          window.location.reload();
+        }, 1000);
+      }
+    }, 1000); // Check every second
+    
+    // Return the interval ID so it can be cleared if needed
+    return pollingInterval;
+  }
+
+  // Function to poll for token in the database
+  function startTokenPolling() {
+    return new Promise((resolve, reject) => {
+      // First get the current site ID
+      getCurrentWebflowSiteId()
+        .then(currentSiteId => {
+          if (!currentSiteId) {
+            throw new Error('Could not determine current site ID');
+          }
+          
+          console.log('Polling for token for site ID:', currentSiteId);
+          
+          // Check if we already have this token in localStorage
+          // const storedToken = localStorage.getItem(`webflow_token_${currentSiteId}`);
+          // if (storedToken) {
+          //   console.log('Token already exists in localStorage, no need to poll');
+          //   return resolve({ success: true, token: storedToken });
+          // }
+          
+          let attempts = 0;
+          const maxAttempts = 15; // Poll for 15 seconds max (1 second intervals)
+          let isTokenFound = false; // Flag to prevent multiple successful resolutions
+          
+          // Start the polling interval
+          const pollingInterval = setInterval(async () => {
+            // Skip if token already found
+            if (isTokenFound) {
+              return;
             }
             
-            const result = await response.json();
-                
-            if (result.success) {
-              // Store the webflow token with site-specific key
-              storeWebflowToken(result.userSecretKey, currentSiteId);
-              
-              // Store user authentication token
-              localStorage.setItem('token', result.token);
-              
-              // Also store user email if available
-              if (result.email) {
-                localStorage.setItem('userEmail', result.email);
-              }
-              
-              // Set user logged in state
-              state.webflowToken = result.userSecretKey;
-              state.userInfo = {
-                email: result.email,
-                newUser: result.newUser
-              };
-              
-              // Clear the needs authorization flag
-              state.needsAuthorization = false;
-              
-              // Show success notification
-              showPopupNotification({
-                type: 'success', 
-                title: 'Connected Successfully',
-                message: 'Your Webflow account has been connected for this site.'
+            attempts++;
+            
+            try {
+              // Check if token exists in database
+              const response = await fetch(`${API_BASE_URL}/api/webflow-auth-window/checkIn/${currentSiteId}`, {
+                method: 'GET',
+                headers: {
+                  'Content-Type': 'application/json'
+                }
               });
-                
-              // Immediately update the UI to reflect the new state
-              renderApp(document.getElementById('root'));
-                
-              // Fetch assets if we're in the assets browser view
-              if (state.currentView === 'assets-browser') {
-                fetchWebflowAssets();
+              
+              if (!response.ok) {
+                console.log(`Polling attempt ${attempts}: Server error`);
+                if (attempts >= maxAttempts) {
+                  clearInterval(pollingInterval);
+                  reject(new Error('Failed to get token after maximum attempts'));
+                }
+                return;
               }
-          
-              if (result.token) {
+              
+              const result = await response.json();
+              console.log('Response from checking token-:', result);
+              
+              // If token is found
+              if (result.success && result.isAuthorized) {
+                // Set flag to prevent further polling
+                isTokenFound = true;
+                
+                // Clear interval immediately
+                clearInterval(pollingInterval);
+                console.log('Token found in database!');
+                
+                // When the token is retrieved from tokenIn endpoint
+                const tokenResponse = await fetch(`${API_BASE_URL}/api/webflow-auth-window/tokenIn/${currentSiteId}`, {
+                  method: 'GET',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  }
+                });
+
+                if (!tokenResponse.ok) {
+                  throw new Error('Failed to retrieve token details');
+                }
+
+                const tokenData = await tokenResponse.json();
+
+                if (!tokenData.success || !tokenData.token) {
+                  throw new Error('Invalid token data received');
+                }
+
+                // Now we have the access jwt, let's call verify-indesigner-auth
                 try {
-                  const verifyResponse = await fetch(`${API_BASE_URL}/user/verify-auth-code-webflow`, {
+                  console.log('Calling verify-indesigner-auth with access token');
+                  const authResponse = await fetch(`${API_BASE_URL}/user/verify-indesigner-auth`, {
                     method: 'POST',
                     headers: {
-                      'Content-Type': 'application/json',
-                      token: result.token
+                      'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                      secret: result.userSecretKey,
-                      clientId: 'd403eff016358ce6fa71358de13b7cee8955c4b7497aade554ac9c9a3b17fbe3'
+                      secret: tokenData.token, // Pass the access token
+                      siteId: currentSiteId  // Pass the current site ID
                     })
                   });
-
-                  const verifyResult = await verifyResponse.json();
                   
-                  if (verifyResult.success) {
-                    console.log('Successfully added site information to user account.');
-                    // You can optionally show another notification or update the UI here
-                  } else {
-                    console.error('Failed to add site information.');
+                  if (!authResponse.ok) {
+                    console.error('Error verifying auth:', authResponse.status);
+                    throw new Error('Failed to verify authentication');
                   }
-                } catch (verifyError) {
-                  console.error('Error verifying auth code for site info.');
+                  
+                  const authData = await authResponse.json();
+
+                  if (authData.success && authData.token) {
+                    // Store the JWT token in localStorage
+                    localStorage.setItem('token2', authData.token);
+                    localStorage.setItem('token2_timestamp', Date.now().toString());
+
+                    setTimeout(() => {
+                      // Reload the page
+                      window.location.reload();
+                    }, 1000);
+                    
+                    console.log('JWT authentication token stored successfully');
+                    
+                    // Store email if available
+                    // if (authData.email) {
+                    //   localStorage.setItem('userEmail', authData.email);
+                    // }
+                    
+                    // Continue with the flow, storing the Webflow access token
+                    // localStorage.setItem(`webflow_token_${currentSiteId}`, tokenData.token);
+                    
+                    // // Also store in the generic key for backward compatibility
+                    // localStorage.setItem('webflowToken', tokenData.token);
+                    
+                    // // Add a timestamp
+                    // localStorage.setItem('webflowTokenTimestamp', new Date().getTime().toString());
+                    
+                    // Update state
+                    state.webflowToken = tokenData.token;
+                    state.needsAuthorization = false;
+                    
+                    // Return success to resolve the original promise
+                    return { success: true, token: tokenData.token, jwtToken: authData.token };
+                  } else {
+                    console.error('Authentication failed:', authData.message || 'No JWT token received');
+                    throw new Error('Authentication failed');
+                  }
+                } catch (authError) {
+                  console.error('Error during authentication verification:', authError);
+                  
+                  // Even if JWT auth fails, still store the Webflow token so basic functionality works
+                  // localStorage.setItem(`webflow_token_${currentSiteId}`, tokenData.token);
+                  // localStorage.setItem('webflowToken', tokenData.token);
+                  // localStorage.setItem('webflowTokenTimestamp', new Date().getTime().toString());
+                  state.webflowToken = tokenData.token;
+                  
+                  // Return partial success
+                  return { 
+                    success: true, 
+                    token: tokenData.token, 
+                    authError: true,
+                    message: 'Webflow token stored but JWT verification failed'
+                  };
+                }
+              } else {
+                console.log(`Polling attempt ${attempts}: No token found yet`);
+                
+                // If we've reached the maximum number of attempts, reject the promise
+                if (attempts >= maxAttempts) {
+                  clearInterval(pollingInterval);
+                  reject(new Error('Failed to get token after maximum attempts'));
                 }
               }
-              
-              // Resolve the promise with the result
-              resolve(result);
-            } else {
-              throw new Error(result.message || result.details || 'Failed to connect Webflow account');
+            } catch (error) {
+              console.error('Error during token polling:', error);
+              if (attempts >= maxAttempts) {
+                clearInterval(pollingInterval);
+                reject(error);
+              }
             }
-          } catch (error) {
-            console.error('Token exchange error:', error);
-            
-            // // Add retry logic
-            // if (retryCount < 2) {
-            //   console.log(`Retrying OAuth flow (Attempt ${retryCount + 1})`);
-              
-            //   // Wait a short time before retrying
-            //   setTimeout(() => {
-            //     openOAuthWindow(retryCount + 1)
-            //       .then(resolve)
-            //       .catch(reject);
-            //   }, 1000);
-            // } else {
-            //   showPopupNotification({
-            //     type: 'error',
-            //     title: 'Authorization Failed',
-            //     message: 'Could not complete Webflow authorization. Please try again.'
-            //   });
-            //   reject(error);
-            // }
-          }
-        }
-      });
-  
-      // Handle case where window is closed without completing auth
-      const checkClosed = setInterval(() => {
-        if (oauthWindow && oauthWindow.closed) {
-          clearInterval(checkClosed);
-          console.log('OAuth window was closed without completion');
-          reject(new Error('Authorization window was closed'));
-        }
-      }, 500);
-  
-      // Focus the window to bring it to the front
-      if (oauthWindow) {
-        oauthWindow.focus();
-      } else {
-        reject(new Error('Failed to open OAuth window'));
-      }
+          }, 1000); // Poll every 1 second
+        })
+        .catch(error => {
+          console.error('Error getting current site ID:', error);
+          reject(error);
+        });
     });
   }
 
@@ -3367,18 +3637,14 @@
         return false;
       }
       
-      // console.log('Checking for Webflow connection for site ID:', currentSiteId);
-      
-      // Check if we have a site-specific token first
-      const siteSpecificToken = localStorage.getItem(`webflow_token_${currentSiteId}`);
-      if (siteSpecificToken) {
-        console.log('Found site-specific token for current site');
-        state.webflowToken = siteSpecificToken;
-        return true;
+      const jwt = localStorage.getItem('token2');
+      console.log('JWT token:', jwt);
+      if (!jwt) {
+        console.log('No JWT token found in localStorage');
+        return false;
       }
-      
-      // If we get here, we don't have a valid connection for this site
-      return false;
+
+      return true;
     } catch (error) {
       console.error('Error checking existing Webflow connection:', error);
       return false;
@@ -3515,8 +3781,10 @@
     main.style.border = '2px solid black';
     main.style.borderRadius = '10px';
 
+    const isAuthenticated2 = !!(localStorage.getItem('token2'));
+
     // Check if we need to show the authorization screen
-    if (state.needsAuthorization) {
+    if (!isAuthenticated2) {
       // Render the authorization UI instead of assets browser
       main.innerHTML = `
         <div class="max-w-7xl mx-auto px-4">
@@ -3545,8 +3813,9 @@
     }
 
     // Check if user is authenticated
-    const isAuthenticated = !!(localStorage.getItem('token') && localStorage.getItem('webflowToken'));
-    
+    const isAuthenticated = !!(localStorage.getItem('token2'));
+    // console.log('User authenticated:', isAuthenticated);
+
     main.innerHTML = `
       <div class="max-w-7xl mx-auto px-4">
         <div class="flex justify-between items-center mb-4">
@@ -3570,7 +3839,6 @@
             </div>`: state.error ? `
             <div class="text-center p-6 bg-red-50 text-red-700 rounded-md">
               <p>${state.error}</p>
-              <button id="retry-button" class="button button-outline mt-4">Retry</button>
             </div>
           ` : `
             <div class="space-y-4">
@@ -3599,7 +3867,6 @@
                   </button>
                 </div>
               </div>
-              
               ${state.filteredAssets.length === 0 ? `
                 <div class="text-center py-10 text-gray-500">
                   ${state.searchTerm ? 'No assets match your search.' : 'No assets found.'}
@@ -3724,7 +3991,7 @@
       if (reloadButton) {
         reloadButton.addEventListener('click', () => {
           // Only allow reload if webflow is connected
-          if (!localStorage.getItem('webflowToken')) {
+          if (!localStorage.getItem('token2')) {
             showPopupNotification({
               type: 'info',
               title: 'Connect Webflow',
@@ -3937,7 +4204,7 @@
       const retryButton = document.getElementById('retry-button');
       if (retryButton) {
         retryButton.addEventListener('click', () => {
-          if (state.webflowToken) {
+          if (!!(localStorage.getItem('token2'))) {
             fetchWebflowAssets();
           } else {
             showPopupNotification({
@@ -4068,7 +4335,7 @@
                 </div>
                 
                 <!-- Right column for aspect ratio toggle -->
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 60px; margin-left: -115px;">
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 60px; margin-left: -100px;">
                   <button id="aspect-ratio-toggle" class="aspect-ratio-toggle p-2 rounded-md" title="Maintain aspect ratio">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 25 25" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
@@ -5059,16 +5326,16 @@
             cropContainer.insertBefore(svgContainer, cropOverlay);
             
             // Add a debug overlay to visualize the actual dimensions (can be removed in production)
-            const debugBox = document.createElement('div');
-            debugBox.style.position = 'absolute';
-            debugBox.style.border = '1px dashed red';
-            debugBox.style.width = `${displayWidth}px`;
-            debugBox.style.height = `${displayHeight}px`;
-            debugBox.style.top = '0';
-            debugBox.style.left = '0';
-            debugBox.style.zIndex = '1';
-            debugBox.style.pointerEvents = 'none'; // Make sure it doesn't interfere with interaction
-            svgContainer.appendChild(debugBox);
+            // const debugBox = document.createElement('div');
+            // debugBox.style.position = 'absolute';
+            // debugBox.style.border = '1px dashed red';
+            // debugBox.style.width = `${displayWidth}px`;
+            // debugBox.style.height = `${displayHeight}px`;
+            // debugBox.style.top = '0';
+            // debugBox.style.left = '0';
+            // debugBox.style.zIndex = '1';
+            // debugBox.style.pointerEvents = 'none'; // Make sure it doesn't interfere with interaction
+            // svgContainer.appendChild(debugBox);
             
             // Update crop container dimensions with the scaled values
             cropContainer.style.width = `${displayWidth}px`;
@@ -5814,7 +6081,7 @@
 
   // Function to check notification status and update the button
   function checkNotificationStatus(assetId, buttonId) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token2');
     
     // Only check notification status if user is logged in
     if (token) {
@@ -5884,7 +6151,7 @@
     }
     
     // First check if user is logged in
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token2');
     if (!token) {
       // Show login popup if user is not logged in
       showCompressionAuthPopup();
@@ -6568,8 +6835,11 @@
       const dateB = new Date(b.createdOn || 0).getTime();
       return dateB - dateA;
     });
+
+    // console.log('Filtered assets-----:', result);
     
     state.filteredAssets = result;
+    // console.log('Filtered assets after search and filter-----:', state.filteredAssets);
     
     // Update total pages
     state.totalPages = Math.max(1, Math.ceil(result.length / state.itemsPerPage));
@@ -6588,15 +6858,18 @@
       // First try to use the Webflow API if available
       if (window.webflow && window.webflow.getSiteInfo) {
         const siteInfo = await window.webflow.getSiteInfo();
+        // console.log('Site Info from Webflow API:', siteInfo);
+        // const id = await window.webflow.getIdToken();
+        // console.log("ID OF THE SITE- ", id);
         
         if (siteInfo && siteInfo.siteId) {
           // Store the site ID for later use
           localStorage.setItem('currentWebflowSiteId', siteInfo.siteId);
           
-          console.log('Current Site Info from API:', {
-            siteId: siteInfo.siteId,
-            siteName: siteInfo.siteName || siteInfo.shortName || 'Webflow Site'
-          });
+          // console.log('Current Site Info from API:', {
+          //   siteId: siteInfo.siteId,
+          //   siteName: siteInfo.siteName || siteInfo.shortName || 'Webflow Site'
+          // });
           
           return siteInfo.siteId;
         }
@@ -6629,7 +6902,6 @@
     }
   }
 
-  // Function to fetch Webflow assets with site-specific token support
   async function fetchWebflowAssets() {
     state.isLoading = true;
     state.error = null;
@@ -6638,52 +6910,48 @@
     try {
       // Get the current site ID
       const currentSiteId = await getCurrentWebflowSiteId();
+      console.log('Current Site ID:', currentSiteId);
       if (!currentSiteId) {
         throw new Error('Could not determine current site ID');
       }
       
-      // First check for a site-specific token
-      const siteSpecificToken = localStorage.getItem(`webflow_token_${currentSiteId}`);
+      // Get the JWT token from localStorage
+      const jwtToken = localStorage.getItem('token2');
+      // console.log('JWT Token in fetchwebflowassets:', jwtToken);
+
+      if (!jwtToken) {
+        throw new Error('Authentication required. Please connect your Webflow account.');
+      }
       
-      // // Fallback to generic token if no site-specific token exists
-      // const genericToken = localStorage.getItem('webflowToken');
+      // Call getUserToken API to get the site-specific Webflow token
+      const tokenResponse = await fetchSiteToken(jwtToken, currentSiteId);
       
-      // Use site-specific token if available, otherwise use generic token
-      const token = siteSpecificToken;
-      
-      if (!token) {
-        throw new Error('No Webflow token available. Please connect your Webflow account.');
+      if (!tokenResponse.success || !tokenResponse.key) {
+        throw new Error('Failed to get Webflow token. Please reconnect your Webflow account.');
       }
       
       // Store the token in state for later use
-      state.webflowToken = token;
+      state.webflowToken = tokenResponse.key;
       
-      console.log('Site token - ', state.webflowToken);
-
-      // Make the API call with the appropriate token
+      console.log('Successfully retrieved Webflow token for site ID:', currentSiteId);
+      
+      // Make the API call with the retrieved token
       const response = await fetch(`${API_BASE_URL}/api/direct-webflow-assets`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'x-webflow-site': currentSiteId,
-          // 'Content-Type': 'application/json'
+          'Authorization': `Bearer ${state.webflowToken}`,
+          'x-webflow-site': currentSiteId
         }
       });
       
-      console.log('Response - ', response);
-      
       const responseData = await response.json();
+      
+      // console.log('Response data:', responseData);
       
       if (!response.ok || !responseData.success) {
         console.error('Server Error Response:', responseData);
         
         // If the token is invalid or expired, clear it and reset state
         if (response.status === 401) {
-          // Clear the specific token that failed
-          if (siteSpecificToken) {
-            localStorage.removeItem(`webflow_token_${currentSiteId}`);
-          }
-          localStorage.removeItem('webflowToken');
-          
           // Reset state
           state.webflowToken = null;
           state.assets = [];
@@ -6716,6 +6984,48 @@
     } finally {
       state.isLoading = false;
       renderApp(document.getElementById('root'));
+    }
+  }
+
+  // Add the fetchSiteToken function
+  async function fetchSiteToken(jwtToken, siteId) {
+    if (!jwtToken || !siteId) {
+      throw new Error('Missing token or siteId');
+    }
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/user/get-token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          token: jwtToken  // Use the JWT token in the header
+        },
+        body: JSON.stringify({
+          siteId: siteId  // Pass the siteId in the request body
+        })
+      });
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Authentication failed when getting site token');
+        }
+        if (response.status === 404) {
+          localStorage.removeItem('token2');
+          // Add a small delay to ensure all data is properly saved
+          setTimeout(() => {
+            // Reload the page
+            window.location.reload();
+          }, 1000);
+        }
+        
+        const errorData = await response.json();
+        throw new Error(errorData.msg || 'Failed to get site token');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching site token:', error);
+      throw error;
     }
   }
   

@@ -10,7 +10,7 @@ declare global {
     }
   }
   
-  /**
+  /*
    * Set the size of the Webflow extension UI
    * @param size 'default' | 'comfortable' | 'large' | {width: number; height: number}
    * @returns Promise that resolves when size is set
